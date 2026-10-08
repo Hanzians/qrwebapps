@@ -62,9 +62,8 @@ After running `npm run seed`, you can log in with any of the following pre-confi
 
 | Role | Username | Password | Notes |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin` | `admin123` | Institutional overview, user management, audit logs, system backups |
-| **Professor** | `prof.costales` | `prof123` | Session management, QR generation, multi-filter reporting & pie charts |
-| **Professor** | `prof.reyes` | `prof123` | Alternate faculty member |
+| **Admin** | `admin` | `adminpassword` | Institutional overview, user management, audit logs, system backups |
+| **Professor** | `faculty` | `profpass` | Session management, QR generation, multi-filter reporting & pie charts |
 | **Student** | `student1` | `stud123` | Attendance scanner, schedule view, excuse submission |
 | **Student** | `student2` | `stud123` | Enrolled in CS courses |
 
