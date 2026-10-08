@@ -104,7 +104,12 @@ async function initScannerPage() {
       const recoveryDataRaw = localStorage.getItem("active_session_recovery");
       let recoveryData = recoveryDataRaw ? JSON.parse(recoveryDataRaw) : null;
       
-      const activeSessions = await fetchMyActiveSessions();
+      let activeSessions = [];
+      try {
+        activeSessions = await fetchMyActiveSessions();
+      } catch (err) {
+        console.warn("fetchMyActiveSessions error, proceeding:", err);
+      }
       
       if (activeSessions && Array.isArray(activeSessions) && activeSessions.length > 0) {
         const sess = activeSessions[0];
@@ -135,68 +140,79 @@ async function initScannerPage() {
 
       await loadInitialAdminData();
     } catch (e) {
+      console.error("Failed to load initial scanner data:", e);
       showToast("Failed to load initial data", "error");
     }
   }
 }
 
 async function loadInitialAdminData() {
-  const courses = await fetchCourses();
-  const rooms = await fetchRooms();
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCourse = urlParams.get("course");
+  let isSelectedOnline = false;
 
-  if (courses && courses.length > 0) {
-    els.courseSelect.innerHTML =
-      '<option value="" disabled selected>Select a Course</option>' +
-      courses
-        .map(
-          (c) => `<option value="${c.code}">${c.code} — ${c.name}</option>`,
-        )
-        .join("");
-        
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlCourse = urlParams.get("course");
-    let isSelectedOnline = false;
-    
-    if (urlCourse) {
-      els.courseSelect.value = urlCourse;
-      const c = courses.find(x => x.code === urlCourse);
-      if (c && c.is_online) isSelectedOnline = true;
+  const [courses, rooms] = await Promise.all([
+    fetchCourses().catch(() => []),
+    fetchRooms().catch(() => [])
+  ]);
+
+  if (courses && Array.isArray(courses) && courses.length > 0) {
+    if (els.courseSelect) {
+      els.courseSelect.innerHTML =
+        '<option value="" disabled selected>Select a Course</option>' +
+        courses
+          .map(
+            (c) => `<option value="${c.code}">${c.code} — ${c.name}</option>`,
+          )
+          .join("");
+          
+      if (urlCourse) {
+        els.courseSelect.value = urlCourse;
+        const c = courses.find((x) => x.code === urlCourse);
+        if (c && c.is_online) isSelectedOnline = true;
+      }
     }
         
-    els.startBtn.disabled = false;
+    if (els.startBtn) els.startBtn.disabled = false;
   } else {
-    els.courseSelect.innerHTML =
-      "<option disabled>No courses available</option>";
-    els.startBtn.disabled = true;
+    if (els.courseSelect) {
+      els.courseSelect.innerHTML =
+        "<option disabled>No courses available</option>";
+    }
+    if (els.startBtn) els.startBtn.disabled = true;
   }
 
-  if (rooms && rooms.length > 0) {
-    els.roomSelect.innerHTML =
-      '<option value="" disabled selected>Select Room / Online</option><option value="null">Online / No Room</option>' +
-      rooms
-        .map(
-          (r) => `<option value="${r.id}">${r.name} (${r.type})</option>`,
-        )
-        .join("");
-        
-    if (isSelectedOnline) {
-       els.roomSelect.value = "null";
-       const modeSelect = document.getElementById("modeSelect");
-       if (modeSelect) modeSelect.value = "ONLINE";
+  if (rooms && Array.isArray(rooms) && rooms.length > 0) {
+    if (els.roomSelect) {
+      els.roomSelect.innerHTML =
+        '<option value="" disabled selected>Select Room / Online</option><option value="null">Online / No Room</option>' +
+        rooms
+          .map(
+            (r) => `<option value="${r.id}">${r.name} (${r.type})</option>`,
+          )
+          .join("");
+          
+      if (isSelectedOnline) {
+         els.roomSelect.value = "null";
+         const modeSelect = document.getElementById("modeSelect");
+         if (modeSelect) modeSelect.value = "ONLINE";
+      }
     }
     
     // Auto-start if requested
     const autostart = urlParams.get("autostart");
     if (autostart === '1') {
         setTimeout(() => {
-            if (!els.startBtn.disabled) {
+            if (els.startBtn && !els.startBtn.disabled) {
                 els.startBtn.click();
             }
         }, 500);
     }
   } else {
-    els.roomSelect.innerHTML =
-      '<option value="null">No rooms defined</option>';
+    if (els.roomSelect) {
+      els.roomSelect.innerHTML =
+        '<option value="null">No rooms defined</option>';
+    }
   }
 
   // Attendance Mode Logic

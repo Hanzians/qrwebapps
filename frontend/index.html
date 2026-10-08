@@ -343,9 +343,9 @@
             <!-- Pie Canvas with Centered Rate -->
             <div class="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto my-1 shrink-0 flex items-center justify-center">
               <canvas id="dashboardPieChart"></canvas>
-              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center z-20" id="dashPieCenterWrap">
                 <span class="text-2xl font-black text-slate-800 dark:text-white tracking-tighter" id="dashPieRate">0%</span>
-                <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Present</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold" id="dashPieLabel">Present</span>
               </div>
             </div>
 
@@ -544,8 +544,33 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 350 },
+                animation: { duration: 250 },
                 cutout: "70%",
+                onHover: (event, elements) => {
+                  const rateEl = document.getElementById("dashPieRate");
+                  const labelEl = document.getElementById("dashPieLabel");
+                  if (!rateEl || !labelEl) return;
+
+                  if (elements && elements.length > 0) {
+                    const idx = elements[0].index;
+                    const items = [
+                      { label: "Present", pct: pPct, colorClass: "text-emerald-600 dark:text-emerald-400" },
+                      { label: "Late", pct: lPct, colorClass: "text-amber-600 dark:text-amber-400" },
+                      { label: "Absent", pct: aPct, colorClass: "text-rose-600 dark:text-rose-400" },
+                      { label: "Excused", pct: ePct, colorClass: "text-blue-600 dark:text-blue-400" }
+                    ];
+                    const item = items[idx];
+                    if (item) {
+                      rateEl.innerText = `${item.pct}%`;
+                      labelEl.innerText = item.label;
+                      labelEl.className = `text-[10px] font-black uppercase tracking-wider font-bold ${item.colorClass}`;
+                    }
+                  } else {
+                    rateEl.innerText = `${pPct}%`;
+                    labelEl.innerText = "Present";
+                    labelEl.className = "text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold";
+                  }
+                },
                 plugins: {
                   legend: { display: false },
                   tooltip: {
@@ -554,7 +579,10 @@
                     bodyFont: { size: 11, family: "'JetBrains Mono', monospace" },
                     padding: 8,
                     cornerRadius: 8,
+                    caretSize: 4,
+                    caretPadding: 6,
                     callbacks: {
+                      title: () => "",
                       label: function(context) {
                         if (total === 0) return " No logs recorded";
                         const val = context.raw || 0;
@@ -567,6 +595,16 @@
                 }
               }
             });
+
+            pieCtx.onmouseleave = () => {
+              const rateEl = document.getElementById("dashPieRate");
+              const labelEl = document.getElementById("dashPieLabel");
+              if (rateEl) rateEl.innerText = `${pPct}%`;
+              if (labelEl) {
+                labelEl.innerText = "Present";
+                labelEl.className = "text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold";
+              }
+            };
           }
 
           const tbody = document.getElementById("classesBody");

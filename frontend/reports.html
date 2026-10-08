@@ -574,10 +574,10 @@
             <div class="flex flex-col md:flex-row items-center justify-around gap-8 my-auto">
               <div class="relative w-48 h-48 sm:w-56 sm:h-56 shrink-0 flex items-center justify-center">
                 <canvas id="attendancePieCtx"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center z-20" id="pieCenterWrap">
                   <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500" id="pieCenterLabel">Attendance</span>
                   <span class="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tighter" id="pieCenterRate">0%</span>
-                  <span class="text-[9px] font-bold text-slate-400" id="pieCenterSub">Present Rate</span>
+                  <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400" id="pieCenterSub">Present Rate</span>
                 </div>
               </div>
               <div class="w-full flex-1 max-w-xl space-y-2.5" id="pieBreakdownLegend">
@@ -1052,8 +1052,29 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: { duration: 300 },
+            animation: { duration: 250 },
             cutout: "70%",
+            onHover: (event, elements) => {
+              const centerEl = document.getElementById("pieCenterRate");
+              const centerSub = document.getElementById("pieCenterSub");
+              const centerLabel = document.getElementById("pieCenterLabel");
+              if (!centerEl || !centerSub) return;
+
+              if (elements && elements.length > 0 && attendancePieChart) {
+                const idx = elements[0].index;
+                const label = attendancePieChart.data.labels[idx];
+                const count = attendancePieChart.data.datasets[0].data[idx] || 0;
+                const total = attendancePieChart.data.datasets[0].data.reduce((a, b) => a + b, 0) || 1;
+                const pct = ((count / total) * 100).toFixed(1);
+                centerEl.innerText = `${pct}%`;
+                if (centerLabel) centerLabel.innerText = "Category";
+                centerSub.innerText = `${label} (${count})`;
+              } else {
+                if (typeof window._restorePieCenter === "function") {
+                  window._restorePieCenter();
+                }
+              }
+            },
             onClick: (event, elements) => {
               if (elements && elements.length > 0 && attendancePieChart) {
                 const idx = elements[0].index;
@@ -1077,9 +1098,12 @@
                 backgroundColor: "rgba(15, 23, 42, 0.95)",
                 titleFont: { size: 12, family: "'Inter', sans-serif", weight: "bold" },
                 bodyFont: { size: 12, family: "'JetBrains Mono', monospace" },
-                padding: 12,
-                cornerRadius: 12,
+                padding: 8,
+                cornerRadius: 8,
+                caretSize: 4,
+                caretPadding: 6,
                 callbacks: {
+                  title: () => "",
                   label: function(context) {
                     const val = context.raw || 0;
                     const total = context.dataset.data.reduce((a, b) => a + b, 0) || 1;
@@ -1091,6 +1115,12 @@
             }
           }
         });
+
+        ctx.onmouseleave = () => {
+          if (typeof window._restorePieCenter === "function") {
+            window._restorePieCenter();
+          }
+        };
       }
 
       function updatePieChart(filteredLogs, baseLogsForCounts) {
@@ -1165,21 +1195,24 @@
         }
 
         // Center rate & labels inside doughnut
-        const centerEl = document.getElementById("pieCenterRate");
-        const centerSub = document.getElementById("pieCenterSub");
-        const centerLabel = document.getElementById("pieCenterLabel");
-        if (centerEl) {
-          if (!isMultiFiltered) {
-            centerEl.innerText = `${pPctBase}%`;
-            if (centerLabel) centerLabel.innerText = "Attendance";
-            if (centerSub) centerSub.innerText = "Present Rate";
-          } else {
-            centerEl.innerText = `${filteredTotal}`;
-            if (centerLabel) centerLabel.innerText = activeStatusFilters.has("AT_RISK") ? "At-Risk" : "Filtered";
-            const names = showcasedCategories.map(c => c.label).join(" + ");
-            if (centerSub) centerSub.innerText = names.length > 20 ? `${names.substring(0, 18)}...` : names;
+        window._restorePieCenter = () => {
+          const centerEl = document.getElementById("pieCenterRate");
+          const centerSub = document.getElementById("pieCenterSub");
+          const centerLabel = document.getElementById("pieCenterLabel");
+          if (centerEl) {
+            if (!isMultiFiltered) {
+              centerEl.innerText = `${pPctBase}%`;
+              if (centerLabel) centerLabel.innerText = "Attendance";
+              if (centerSub) centerSub.innerText = "Present Rate";
+            } else {
+              centerEl.innerText = `${filteredTotal}`;
+              if (centerLabel) centerLabel.innerText = activeStatusFilters.has("AT_RISK") ? "At-Risk" : "Filtered";
+              const names = showcasedCategories.map(c => c.label).join(" + ");
+              if (centerSub) centerSub.innerText = names.length > 20 ? `${names.substring(0, 18)}...` : names;
+            }
           }
-        }
+        };
+        window._restorePieCenter();
 
         // Update Total logs counter
         const totalLogsBadge = document.getElementById("pieChartTotalLogs");
