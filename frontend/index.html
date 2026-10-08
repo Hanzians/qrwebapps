@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="PUP-Student Attendance System" />
+    <title>Dashboard — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-4 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden"
+      >
+        <header class="flex flex-col mb-8 gap-6 animate-fade">
+          <div class="flex justify-between items-center w-full">
+            <div class="flex items-center gap-4">
+              <button
+                onclick="toggleSidebar()"
+                class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              >
+                <span class="material-symbols-rounded text-3xl">menu</span>
+              </button>
+            </div>
+            <div class="flex gap-4 items-center">
+              <button
+                onclick="toggleTheme()"
+                 class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm hover:shadow-md flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-maroon dark:hover:text-gold transition-all duration-300"
+              >
+                <span class="material-symbols-rounded text-xl">contrast</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="card bg-gradient-to-br from-maroon/5 via-transparent to-maroon/5 dark:from-maroon/10 dark:to-transparent border-none flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 py-8 md:py-10 relative overflow-hidden glass">
+             <div class="absolute -top-32 -right-32 w-96 h-96 bg-maroon/10 rounded-full blur-3xl dark:bg-maroon/20 mix-blend-multiply dark:mix-blend-screen pointer-events-none"></div>
+             <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-gold/10 rounded-full blur-3xl dark:bg-gold/10 mix-blend-multiply dark:mix-blend-screen pointer-events-none"></div>
+             
+             <div class="flex-1 min-w-0 z-10 w-full">
+               <div
+                 class="text-[10px] font-black uppercase tracking-[0.2em] text-maroon dark:text-gold mb-3 opacity-90"
+               >
+                 Professor Portal
+               </div>
+               <h1
+                 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter dark:text-white leading-tight mb-5"
+                 id="welcomeMsg"
+               >
+                 Welcome
+               </h1>
+               <div class="flex gap-3 flex-wrap">
+                  <div class="flex items-center gap-2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-white/40 dark:border-slate-700/50">
+                    <span class="relative flex h-2 w-2">
+                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span
+                      class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest"
+                    >System Active</span>
+                  </div>
+                  <div class="flex items-center gap-2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-white/40 dark:border-slate-700/50">
+                    <span class="material-symbols-rounded text-[14px] text-slate-500">calendar_month</span>
+                    <span
+                      class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest"
+                     id="globalSemesterLabel">Current Semester</span><script>setTimeout(() => { if (window.getCurrentSemesterString) { document.getElementById("globalSemesterLabel").innerText = window.getCurrentSemesterString(); } }, 50);</script>
+                  </div>
+               </div>
+             </div>
+          </div>
+        </header>
+        
+        <div id="smartScheduleContainer" class="mb-12 hidden"></div>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div
+            class="card glass animate-fade delay-100 border border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-950/20 relative overflow-hidden group p-8"
+          >
+            <div class="absolute -right-4 -top-4 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-colors pointer-events-none"></div>
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-indigo-500/10 rounded-xl text-indigo-600 dark:text-indigo-400">
+                  <span class="material-symbols-rounded text-lg">auto_stories</span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest">Active Courses</div>
+              </div>
+              <div
+                class="text-5xl font-black text-slate-800 dark:text-white tracking-tighter"
+                id="statClasses"
+              >
+                0
+              </div>
+            </div>
+          </div>
+          
+          <div
+            class="card glass animate-fade delay-200 border border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/20 relative overflow-hidden group p-8 flex flex-col justify-between"
+          >
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-colors pointer-events-none"></div>
+            <div class="relative z-10 flex-1">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400">
+                  <span class="material-symbols-rounded text-lg">groups</span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest">Total Students</div>
+              </div>
+              <div
+                class="text-5xl font-black text-slate-800 dark:text-white tracking-tighter"
+                id="statStudents"
+              >
+                0
+              </div>
+            </div>
+            <div class="flex items-center gap-2 mt-4 text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-widest relative z-10">
+              <span class="material-symbols-rounded text-[14px]">trending_up</span>
+              Enrolled Database
+            </div>
+          </div>
+          
+          <div
+            class="card glass animate-fade delay-300 border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 relative overflow-hidden group p-8 flex flex-col justify-between"
+          >
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-colors pointer-events-none"></div>
+            <div class="relative z-10 flex-1">
+               <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
+                  <span class="material-symbols-rounded text-lg">analytics</span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest">Attendance Rate</div>
+              </div>
+              <div
+                class="text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter"
+                id="statRate"
+              >
+                0%
+              </div>
+            </div>
+            <div class="flex items-center gap-2 mt-4 text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-widest relative z-10">
+              <span class="material-symbols-rounded text-[14px]">verified</span>
+              Target Threshold Met
+            </div>
+          </div>
+        </section>
+        <!-- Analytics & Distribution Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+          <!-- Attendance Trends Line Chart -->
+          <div class="card glass animate-fade delay-400 lg:col-span-7 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 relative overflow-hidden flex flex-col justify-between">
+            <div class="absolute -top-32 -left-32 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h2
+                  class="text-xl font-black dark:text-white flex items-center gap-3 relative z-10"
+                >
+                  <span
+                    class="material-symbols-rounded text-amber-600 p-2.5 bg-amber-600/10 rounded-xl"
+                    >trending_up</span
+                  >
+                  Attendance Trends
+                </h2>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest relative z-10">Last 7 Sessions</span>
+              </div>
+              <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 relative z-10">Daily attendance volume and student participation tracking</p>
+            </div>
+            <div class="h-64 relative z-10 bg-white/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800"><canvas id="attendanceChart"></canvas></div>
+          </div>
+
+          <!-- Simpler Visual Pie Attendance Graph Component -->
+          <div class="card glass animate-fade delay-450 lg:col-span-5 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 relative overflow-hidden flex flex-col justify-between">
+            <div class="absolute -top-32 -right-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between mb-2 relative z-10">
+              <h2 class="text-xl font-black dark:text-white flex items-center gap-3">
+                <span class="material-symbols-rounded text-indigo-600 p-2.5 bg-indigo-600/10 rounded-xl">pie_chart</span>
+                Attendance Breakdown
+              </h2>
+              <a href="reports.html" class="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/40 transition-colors" title="Open full reporting & analytics module">
+                Full Report <span class="material-symbols-rounded text-xs">arrow_forward</span>
+              </a>
+            </div>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 relative z-10">Overall categorical attendance distribution</p>
+            
+            <!-- Pie Canvas with Centered Rate -->
+            <div class="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto my-1 shrink-0 flex items-center justify-center">
+              <canvas id="dashboardPieChart"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                <span class="text-2xl font-black text-slate-800 dark:text-white tracking-tighter" id="dashPieRate">0%</span>
+                <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Present</span>
+              </div>
+            </div>
+
+            <!-- Clean Compact Legend -->
+            <div class="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10" id="dashPieLegend">
+              <div class="flex items-center justify-between p-2 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Present</span>
+                </div>
+                <span class="font-mono text-xs font-black text-emerald-600 dark:text-emerald-400" id="dashPiePresentVal">0 (0%)</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Late</span>
+                </div>
+                <span class="font-mono text-xs font-black text-amber-600 dark:text-amber-400" id="dashPieLateVal">0 (0%)</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/30">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Absent</span>
+                </div>
+                <span class="font-mono text-xs font-black text-rose-600 dark:text-rose-400" id="dashPieAbsentVal">0 (0%)</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Excused</span>
+                </div>
+                <span class="font-mono text-xs font-black text-blue-600 dark:text-blue-400" id="dashPieExcusedVal">0 (0%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Courses Section -->
+        <div
+          class="card glass animate-fade delay-500 p-0 overflow-hidden shadow-sm flex flex-col border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 relative mb-8"
+        >
+          <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-maroon/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div
+            class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-5 border-b border-slate-100 dark:border-slate-700 relative z-10 flex items-center justify-between"
+          >
+            <div
+              class="text-slate-700 dark:text-slate-300 text-xs uppercase font-black tracking-widest flex items-center gap-2"
+            >
+              <span class="material-symbols-rounded text-base text-maroon dark:text-gold">school</span> Assigned
+              Courses
+            </div>
+            <a href="classes.html" class="text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-maroon dark:hover:text-gold flex items-center gap-1 transition-colors">
+              Manage All <span class="material-symbols-rounded text-xs">arrow_forward</span>
+            </a>
+          </div>
+          <div class="table-container flex-1 bg-transparent rounded-none relative z-10">
+            <table class="w-full text-left">
+              <tbody
+                id="classesBody"
+                class="text-sm dark:text-slate-300 divide-y divide-slate-100/50 dark:divide-slate-700/50"
+              >
+                <tr>
+                  <td class="p-6 text-center text-slate-400 font-bold">
+                    Loading courses...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/schedule.js"></script>
+    <script>
+      checkAuth();
+      const user = JSON.parse(localStorage.getItem("user"));
+      document.getElementById("welcomeMsg").innerText =
+        `Welcome back, ${user.full_name || user.username}`;
+      let trendsChartInstance = null;
+      let dashboardPieChartInstance = null;
+
+      async function loadDashboard() {
+        try {
+          // Parallelize all dashboard data fetching
+          let [stats, courses, logs] = await Promise.all([
+            fetchStats().catch(() => null),
+            fetchCourses().catch(() => []),
+            fetchAttendance().catch(() => [])
+          ]);
+          if (!courses || courses.error) courses = [];
+          if (!logs || logs.error) logs = [];
+
+          // Load smart schedule with already-fetched courses
+          loadSmartSchedule(courses);
+
+          // Update header & KPI stats
+          const user = JSON.parse(localStorage.getItem("user") || "{}");
+          if (user.role === "professor") {
+            const popLabel =
+              document.getElementById("statStudents").previousElementSibling;
+            if (popLabel) popLabel.innerText = "Your Students";
+          }
+
+          if (stats) {
+            document.getElementById("statClasses").innerText = stats.classes || 0;
+            document.getElementById("statStudents").innerText = stats.students || 0;
+            document.getElementById("statRate").innerText = stats.rate || "0%";
+
+            if (stats.chart && document.getElementById("attendanceChart")) {
+              if (trendsChartInstance) trendsChartInstance.destroy();
+              trendsChartInstance = new Chart(
+                document.getElementById("attendanceChart").getContext("2d"),
+                {
+                  type: "line",
+                  data: {
+                    labels: stats.chart.map((d) => formatDate(d.date)),
+                    datasets: [
+                      {
+                        label: "Students Present",
+                        data: stats.chart.map((d) => d.count),
+                        borderColor: "#DAA520",
+                        backgroundColor: (c) => {
+                          const ctx = c.chart.ctx,
+                            g = ctx.createLinearGradient(0, 0, 0, 200);
+                          g.addColorStop(0, "rgba(218,165,32,0.25)");
+                          g.addColorStop(1, "rgba(218,165,32,0)");
+                          return g;
+                        },
+                        tension: 0.35,
+                        fill: true,
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 350 },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      y: { beginAtZero: true, grid: { color: "rgba(0,0,0,0.04)" } },
+                      x: { grid: { display: false } },
+                    },
+                  },
+                },
+              );
+            }
+          }
+
+          // Render Simpler Dashboard Pie Attendance Graph
+          let present = 0, late = 0, absent = 0, excused = 0;
+          if (Array.isArray(logs) && logs.length > 0) {
+            logs.forEach(l => {
+              if (l.status === "PRESENT") present++;
+              else if (l.status === "LATE") late++;
+              else if (l.status === "ABSENT") absent++;
+              else if (l.status === "EXCUSED") excused++;
+            });
+          }
+
+          const total = present + late + absent + excused;
+          const pPct = total ? ((present / total) * 100).toFixed(1) : (stats && stats.rate ? parseFloat(stats.rate).toFixed(1) : "0");
+          const lPct = total ? ((late / total) * 100).toFixed(1) : "0";
+          const aPct = total ? ((absent / total) * 100).toFixed(1) : "0";
+          const ePct = total ? ((excused / total) * 100).toFixed(1) : "0";
+
+          const pieRateEl = document.getElementById("dashPieRate");
+          if (pieRateEl) pieRateEl.innerText = `${pPct}%`;
+
+          const pValEl = document.getElementById("dashPiePresentVal");
+          if (pValEl) pValEl.innerText = `${present} (${pPct}%)`;
+          const lValEl = document.getElementById("dashPieLateVal");
+          if (lValEl) lValEl.innerText = `${late} (${lPct}%)`;
+          const aValEl = document.getElementById("dashPieAbsentVal");
+          if (aValEl) aValEl.innerText = `${absent} (${aPct}%)`;
+          const eValEl = document.getElementById("dashPieExcusedVal");
+          if (eValEl) eValEl.innerText = `${excused} (${ePct}%)`;
+
+          const pieCtx = document.getElementById("dashboardPieChart");
+          if (pieCtx) {
+            if (dashboardPieChartInstance) dashboardPieChartInstance.destroy();
+            dashboardPieChartInstance = new Chart(pieCtx.getContext("2d"), {
+              type: "doughnut",
+              data: {
+                labels: ["Present", "Late", "Absent", "Excused"],
+                datasets: [{
+                  data: total > 0 ? [present, late, absent, excused] : [1, 0, 0, 0],
+                  backgroundColor: total > 0 
+                    ? ["#10b981", "#f59e0b", "#f43f5e", "#3b82f6"]
+                    : ["#e2e8f0", "#e2e8f0", "#e2e8f0", "#e2e8f0"],
+                  borderColor: ["#ffffff", "#ffffff", "#ffffff", "#ffffff"],
+                  borderWidth: 2,
+                  hoverOffset: 4
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 350 },
+                cutout: "70%",
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.95)",
+                    titleFont: { size: 11, family: "'Inter', sans-serif", weight: "bold" },
+                    bodyFont: { size: 11, family: "'JetBrains Mono', monospace" },
+                    padding: 8,
+                    cornerRadius: 8,
+                    callbacks: {
+                      label: function(context) {
+                        if (total === 0) return " No logs recorded";
+                        const val = context.raw || 0;
+                        const tot = context.dataset.data.reduce((a, b) => a + b, 0) || 1;
+                        const pct = ((val / tot) * 100).toFixed(1);
+                        return ` ${context.label}: ${val} Students (${pct}%)`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+
+          const tbody = document.getElementById("classesBody");
+          tbody.innerHTML = courses.length
+            ? courses
+                .map(
+                  (c) =>
+                    `<tr onclick="location.href='class-details.html?code=${c.code}'" class="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group relative border-l-4 border-transparent hover:border-maroon dark:hover:border-gold">
+                       <td class="p-4 sm:p-5 relative z-10">
+                         <div class="flex items-center justify-between">
+                            <div>
+                               <div class="font-black text-slate-800 dark:text-white group-hover:text-maroon dark:group-hover:text-gold transition-colors text-lg tracking-tight leading-tight">${c.code}</div>
+                               <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5 tracking-wide">${c.name}</div>
+                            </div>
+                            <div class="bg-slate-100 dark:bg-slate-800 group-hover:bg-maroon dark:group-hover:bg-gold text-slate-400 group-hover:text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-sm">
+                               <span class="material-symbols-rounded text-sm">arrow_forward</span>
+                            </div>
+                         </div>
+                       </td>
+                     </tr>`,
+                )
+                .join("")
+            : '<tr><td class="p-10 text-center"><div class="flex flex-col items-center"><span class="material-symbols-rounded text-4xl opacity-30 mb-2">laptop_mac</span><span class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No Classes Assigned</span></div></td></tr>';
+        } catch (e) {
+          console.error("Dashboard error:", e);
+        }
+      }
+      loadDashboard();
+    </script>
+  </body>
+</html>

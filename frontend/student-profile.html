@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Student Profile — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-4 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden relative"
+      >
+        <div class="absolute top-0 right-0 w-[50vh] h-[50vh] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -translate-x-1/4 -translate-y-1/2"></div>
+        <div class="absolute top-[20vh] left-0 w-[40vh] h-[40vh] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none translate-x-1/4"></div>
+
+        <div
+          class="relative z-10 glass card w-full rounded-[32px] sm:rounded-[40px] p-8 sm:p-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-8 shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden bg-white/60 dark:bg-slate-900/60"
+        >
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-white/5 dark:via-white/5 dark:to-transparent pointer-events-none"></div>
+          <div class="flex items-center gap-6 sm:gap-10 relative z-10">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors shrink-0"
+            >
+              <span class="material-symbols-rounded" style="font-size: 2em"
+                >menu</span
+              >
+            </button>
+            <div
+              class="w-24 h-24 sm:w-32 sm:h-32 rounded-[28px] sm:rounded-[40px] flex items-center justify-center shadow-lg text-white text-4xl sm:text-5xl font-black uppercase tracking-tighter shrink-0 ring-4 ring-white/50 dark:ring-slate-800/50 transition-transform duration-500 hover:scale-105 hover:rotate-3 shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative"
+              id="profileInitials"
+            >
+              <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[inherit] -z-10 group-hover:opacity-90"></div>
+              ST
+            </div>
+            <div class="flex-1 min-w-0">
+              <h1
+                class="text-4xl sm:text-5xl font-black tracking-tighter text-slate-800 dark:text-white leading-none break-words"
+                id="pName"
+              >
+                Student Profile
+              </h1>
+              <p
+                class="text-slate-500 dark:text-slate-400 font-bold text-lg mt-2 tracking-wide break-words"
+                id="pUser"
+              >
+                @username
+              </p>
+              <div class="flex flex-wrap gap-2 sm:gap-3 mt-5">
+                <span
+                  id="pYear"
+                  class="px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-white/80 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-sm text-slate-600 dark:text-slate-300"
+                  >Yr -</span
+                >
+                <span
+                  id="pSection"
+                  class="px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-white/80 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-sm text-slate-600 dark:text-slate-300"
+                  >Sec -</span
+                >
+                <div id="profNoteBtnContainer" class="hidden">
+                   <button onclick="openNoteModal(currentProfileUser.id || currentProfileUser.student_id, currentProfileUser.full_name || currentProfileUser.username)" class="px-5 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm flex items-center gap-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors">
+                      <span class="material-symbols-rounded text-[14px]">edit_note</span> Notes
+                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            onclick="toggleTheme()"
+            class="w-14 h-14 shrink-0 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:scale-105 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 relative z-10"
+          >
+            <span class="material-symbols-rounded text-2xl"
+              >contrast</span
+            >
+          </button>
+        </div>
+
+        <!-- AI Insights & Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+          <!-- AI Insights Card -->
+          <div
+            class="card glass border border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/20 p-8 flex flex-col justify-between overflow-hidden relative group"
+          >
+            <div
+              class="absolute -right-10 -bottom-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-colors"
+            ></div>
+            <div class="relative z-10">
+              <h3
+                class="font-black text-blue-600 dark:text-blue-400 text-[10px] uppercase tracking-[.3em] mb-4 flex items-center gap-2 bg-blue-500/10 backdrop-blur-md px-3 py-1.5 rounded-xl inline-flex"
+              >
+                <span class="material-symbols-rounded text-sm">smart_toy</span>
+                Cross-Course AI Analysis
+              </h3>
+              <div
+                class="text-xl font-bold text-slate-800 dark:text-white leading-tight"
+                id="aiStudentSummary"
+              >
+                Synthesizing behavioral patterns...
+              </div>
+            </div>
+            <div
+              class="relative z-10 mt-6 pt-6 border-t border-blue-500/10 dark:border-blue-500/20 flex justify-between items-center"
+            >
+              <div
+                class="text-[10px] text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest"
+                id="aiStatusLabel"
+              >
+                PENDING ANALYSIS
+              </div>
+              <div
+                class="w-10 h-10 bg-blue-500/10 text-blue-600 dark:text-blue-400 backdrop-blur-md rounded-xl flex items-center justify-center border border-blue-500/20"
+              >
+                <span class="material-symbols-rounded animate-bounce"
+                  >analytics</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div
+              class="card text-center group hover:bg-maroon hover:text-white dark:hover:bg-maroon/80 transition-all duration-500 shadow-sm border-none flex flex-col justify-center"
+            >
+              <div
+                class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white/60 mb-2"
+              >
+                Present
+              </div>
+              <div
+                class="text-4xl font-black tracking-tighter"
+                id="statPresent"
+              >
+                0
+              </div>
+            </div>
+            <div
+              class="card text-center group hover:bg-gold hover:text-white dark:hover:bg-gold/80 transition-all duration-500 shadow-sm border-none flex flex-col justify-center"
+            >
+              <div
+                class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white/60 mb-2"
+              >
+                Late
+              </div>
+              <div class="text-4xl font-black tracking-tighter" id="statLate">
+                0
+              </div>
+            </div>
+            <div
+              class="card text-center group hover:bg-rose-600 hover:text-white transition-all duration-500 shadow-sm border-none flex flex-col justify-center"
+            >
+              <div
+                class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white/60 mb-2"
+              >
+                Absent
+              </div>
+              <div class="text-4xl font-black tracking-tighter" id="statAbsent">
+                0
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges Section -->
+        <h2
+          class="text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-3 text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-8 h-8 rounded-xl bg-gold/10 text-gold flex items-center justify-center shrink-0 shadow-sm"
+            ><span class="material-symbols-rounded text-[18px]">military_tech</span></span
+          >
+          Badges Earned
+        </h2>
+        <div id="badgesContainer" class="flex flex-wrap gap-4 mb-12">
+          <div class="text-[10px] uppercase tracking-widest font-black text-slate-400 p-4 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl border-dashed w-full text-center">Calculating badges...</div>
+        </div>
+
+        <!-- Enrolled Courses -->
+        <h2
+          class="text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-3 text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 shadow-sm"><span class="material-symbols-rounded text-[18px]">book</span></span>
+          Enrolled Courses
+        </h2>
+        <div
+          id="coursesContainer"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+        >
+          <div class="text-[10px] uppercase tracking-widest font-black text-slate-400 p-4 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl border-dashed w-full text-center md:col-span-2 lg:col-span-3">
+            Loading courses...
+          </div>
+        </div>
+
+        <!-- Attendance History -->
+        <div class="card p-0 overflow-hidden mb-8">
+          <div
+            class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center"
+          >
+            <h2
+              class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2"
+            >
+              <span class="material-symbols-rounded text-emerald-500"
+                >history</span
+              >
+              Full Attendance History
+            </h2>
+            <select
+              id="courseFilter"
+              class="input !w-auto"
+              onchange="renderHistory()"
+            >
+              <option value="all">All Courses</option>
+            </select>
+          </div>
+          <div class="table-container">
+            <table class="w-full text-left">
+              <thead
+                class="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase text-slate-500 dark:text-slate-400 border-b dark:border-slate-700"
+              >
+                <tr>
+                  <th class="p-4">Date & Time</th>
+                  <th class="p-4">Course</th>
+                  <th class="p-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody
+                id="fullHistoryTable"
+                class="animate-fade text-sm dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-700"
+              >
+                <tr>
+                  <td colspan="3" class="p-6 text-center text-slate-400">
+                    Loading...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div
+      id="reasonModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-[60] p-4 transition-all duration-300"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-modal relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="bg-transparent px-8 py-6 border-b border-slate-200/50 dark:border-slate-800/50 relative z-10 flex justify-between items-center">
+            <h3 class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                 <span class="material-symbols-rounded">gavel</span>
+              </div>
+              Excuse Reason
+            </h3>
+            <button
+               onclick="document.getElementById('reasonModal').classList.add('hidden')"
+               class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+            >
+               <span class="material-symbols-rounded">close</span>
+            </button>
+        </div>
+        <div class="p-6 sm:p-8 relative z-10 space-y-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+            Select the closest reason below.
+          </p>
+          <input type="hidden" id="reasonLogId" />
+          <div class="space-y-3" id="reasonOptions">
+            <button
+              onclick="saveReason('Medical / Health Issue')"
+              class="w-full px-5 py-4 text-left rounded-2xl bg-white/60 dark:bg-slate-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200/50 dark:border-slate-700/50 hover:border-rose-200 dark:hover:border-rose-800/50 transition-all font-bold text-sm flex items-center justify-between group shadow-sm backdrop-blur-sm"
+            >
+              Medical / Health Issue
+              <span
+                class="material-symbols-rounded text-lg text-slate-400 group-hover:text-rose-500 transition-colors"
+                >medical_services</span
+              >
+            </button>
+            <button
+              onclick="saveReason('Family Emergency')"
+              class="w-full px-5 py-4 text-left rounded-2xl bg-white/60 dark:bg-slate-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200/50 dark:border-slate-700/50 hover:border-rose-200 dark:hover:border-rose-800/50 transition-all font-bold text-sm flex items-center justify-between group shadow-sm backdrop-blur-sm"
+            >
+              Family Emergency
+              <span
+                class="material-symbols-rounded text-lg text-slate-400 group-hover:text-rose-500 transition-colors"
+                >family_restroom</span
+              >
+            </button>
+            <button
+              onclick="saveReason('Transportation Problem')"
+              class="w-full px-5 py-4 text-left rounded-2xl bg-white/60 dark:bg-slate-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200/50 dark:border-slate-700/50 hover:border-rose-200 dark:hover:border-rose-800/50 transition-all font-bold text-sm flex items-center justify-between group shadow-sm backdrop-blur-sm"
+            >
+              Transportation Problem
+              <span
+                class="material-symbols-rounded text-lg text-slate-400 group-hover:text-rose-500 transition-colors"
+                >directions_bus</span
+              >
+            </button>
+            <button
+              onclick="saveReason('Conflict with Schedule')"
+              class="w-full px-5 py-4 text-left rounded-2xl bg-white/60 dark:bg-slate-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200/50 dark:border-slate-700/50 hover:border-rose-200 dark:hover:border-rose-800/50 transition-all font-bold text-sm flex items-center justify-between group shadow-sm backdrop-blur-sm"
+            >
+              Conflict with Schedule
+              <span
+                class="material-symbols-rounded text-lg text-slate-400 group-hover:text-rose-500 transition-colors"
+                >event_busy</span
+              >
+            </button>
+            <button
+              onclick="saveReason('Other / Personal')"
+              class="w-full px-5 py-4 text-left rounded-2xl bg-white/60 dark:bg-slate-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200/50 dark:border-slate-700/50 hover:border-rose-200 dark:hover:border-rose-800/50 transition-all font-bold text-sm flex items-center justify-between group shadow-sm backdrop-blur-sm"
+            >
+              Other / Personal
+              <span
+                class="material-symbols-rounded text-lg text-slate-400 group-hover:text-rose-500 transition-colors"
+                >person</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Private Note Modal -->
+    <div id="privateNoteModal" class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-[60] p-4 transition-all duration-300">
+      <div class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] max-w-lg w-full border border-slate-200/50 dark:border-slate-700/50 shadow-2xl p-6 relative animate-modal flex flex-col">
+        <div class="absolute -right-32 -bottom-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-start justify-between mb-4 relative z-10">
+           <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center rounded-xl shadow-sm shrink-0">
+                 <span class="material-symbols-rounded">edit_note</span>
+              </div>
+              <div class="mt-1">
+                 <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight leading-none mb-1.5">Private Note</h3>
+                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest" id="pn_student_name">Student Name</p>
+              </div>
+           </div>
+           <button onclick="closeNoteModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm shrink-0">
+              <span class="material-symbols-rounded text-sm">close</span>
+           </button>
+        </div>
+        
+        <div class="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 p-3 rounded-xl flex gap-3 mb-4">
+            <span class="material-symbols-rounded text-amber-500 text-lg">lock</span>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-amber-700 dark:text-amber-400 mt-0.5">This note is strictly private. Only you can view this.</p>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto custom-scrollbar mb-4 space-y-3 pr-1" id="pn_notes_list">
+           <div class="text-center p-6 text-slate-400 text-xs font-bold">Loading notes...</div>
+        </div>
+        
+        <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
+           <textarea id="pn_new_text" rows="3" placeholder="Add a new private note context..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-3 resize-none"></textarea>
+           
+           <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+               <button onclick="selectNoteTag(this, 'Attendance Concern')" class="pn-tag-btn px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 border border-transparent hover:border-slate-300 whitespace-nowrap">Attendance Concern</button>
+               <button onclick="selectNoteTag(this, 'Medical')" class="pn-tag-btn px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 border border-transparent hover:border-slate-300 whitespace-nowrap">Medical</button>
+               <button onclick="selectNoteTag(this, 'Excused Context')" class="pn-tag-btn px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 border border-transparent hover:border-slate-300 whitespace-nowrap">Excused Context</button>
+               <button onclick="selectNoteTag(this, 'Behavioral')" class="pn-tag-btn px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 border border-transparent hover:border-slate-300 whitespace-nowrap">Behavioral</button>
+           </div>
+           
+           <button onclick="submitNewNote()" class="btn-primary w-full h-10 text-xs tracking-widest font-black uppercase flex items-center justify-center gap-2">
+               <span class="material-symbols-rounded text-sm">add</span> Save Note
+           </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/attendance_rules.js"></script>
+    <script>
+      checkAuth();
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      // Check if we're viewing someone else's profile via query param (optional, for future expansion)
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewUserId = urlParams.get("username") || user.username;
+      const isOwnProfile = viewUserId === user.username;
+
+      // Populate profile header
+      document.getElementById("pName").innerText = user.full_name || "Student";
+      document.getElementById("pUser").innerText = "@" + (user.app_username || user.username) + (user.app_username ? ` (${user.username})` : "");
+
+      const initials = (user.full_name || "St").substring(0, 2).toUpperCase();
+      document.getElementById("profileInitials").innerText = initials;
+
+      document.getElementById("pYear").innerText = "Yr " + (user.year || "N/A");
+      document.getElementById("pSection").innerText =
+        "Sec " + (user.section || "N/A");
+
+      let allLogs = [];
+      let allCourses = [];
+
+      async function loadProfileData() {
+        try {
+          // Fetch target user info too
+          const targetUser = await fetchUserByUsername(viewUserId);
+
+          if (targetUser.error) {
+            showToast("User not found", "error");
+            return;
+          }
+
+          let [logs, courses, aiInsights] = await Promise.all([
+            isOwnProfile
+              ? fetchAttendanceMe()
+              : fetchStudentAttendance(viewUserId),
+            isOwnProfile ? fetchMyCourses() : fetchStudentCourses(viewUserId),
+            fetchStudentAIInsights(viewUserId),
+          ]);
+          if (logs.error) logs = [];
+          if (courses.error) courses = [];
+          if (aiInsights.error) aiInsights = {};
+
+          // Update UI with target user info
+          window.currentProfileUser = targetUser;
+          if (user.role !== 'student') {
+             document.getElementById('profNoteBtnContainer').classList.remove('hidden');
+          }
+          document.getElementById("pName").innerText =
+            targetUser.full_name || "Student";
+          document.getElementById("pUser").innerText =
+            "@" + (targetUser.app_username || targetUser.username) + (targetUser.app_username ? ` (${targetUser.username})` : "");
+          document.getElementById("pYear").innerText =
+            "Yr " + (targetUser.year || "N/A");
+          document.getElementById("pSection").innerText =
+            "Sec " + (targetUser.section || "N/A");
+
+          const initials = (targetUser.full_name || targetUser.username || "St")
+            .substring(0, 2)
+            .toUpperCase();
+          const profInitials = document.getElementById("profileInitials");
+
+          if (targetUser.avatar && targetUser.avatar.startsWith("data:image")) {
+            profInitials.innerHTML = `<img src="${targetUser.avatar}" class="w-full h-full object-cover rounded-[inherit]" />`;
+          } else {
+            profInitials.innerHTML = `<div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[inherit] -z-10 group-hover:opacity-90"></div>${initials}`;
+          }
+
+          allLogs = logs;
+          allCourses = courses;
+
+          renderCourses(courses, logs);
+          renderBadges(courses, logs);
+          renderAIInsights(aiInsights);
+
+          // Populate stats
+          document.getElementById("statPresent").innerText = logs.filter(
+            (l) => l.status === "PRESENT",
+          ).length;
+          document.getElementById("statLate").innerText = logs.filter(
+            (l) => l.status === "LATE",
+          ).length;
+          document.getElementById("statAbsent").innerText = logs.filter(
+            (l) => l.status === "ABSENT",
+          ).length;
+
+          // Populate filter
+          const filterEl = document.getElementById("courseFilter");
+          filterEl.innerHTML =
+            '<option value="all">All Courses</option>' +
+            courses
+              .map((c) => `<option value="${c.code}">${c.code}</option>`)
+              .join("");
+
+          renderHistory();
+        } catch (e) {
+          console.error("Failed to load profile data", e);
+          document.getElementById("coursesContainer").innerHTML =
+            "<p class='text-red-500'>Error loading data.</p>";
+        }
+      }
+
+      function renderAIInsights(ai) {
+        if (!ai || !ai.success) {
+          document.getElementById("aiStudentSummary").innerText =
+            "AI Insights temporarily unavailable.";
+          return;
+        }
+        document.getElementById("aiStudentSummary").innerText =
+          ai.aiSummary || "No significant patterns detected.";
+        document.getElementById("aiStatusLabel").innerText =
+          "ANALYSIS COMPLETE";
+      }
+
+      function renderCourses(courses, logs) {
+        const container = document.getElementById("coursesContainer");
+        if (!courses || courses.length === 0) {
+          container.innerHTML =
+            '<p class="text-slate-500">No courses enrolled.</p>';
+          return;
+        }
+
+        container.innerHTML = courses
+          .map((c) => {
+            const courseLogs = logs.filter((l) => l.course_code === c.code);
+            const present = courseLogs.filter(
+              (l) => l.status === "PRESENT",
+            ).length;
+            const late = courseLogs.filter((l) => l.status === "LATE").length;
+            const absent = courseLogs.filter(
+              (l) => l.status === "ABSENT",
+            ).length;
+            const total = courseLogs.length;
+
+            const rate =
+              total > 0
+                ? Math.round(((present + late * 0.5) / total) * 100)
+                : 0;
+            let statusColor = "bg-emerald-500";
+            if (rate < 80) statusColor = "bg-yellow-500";
+            if (rate < 60) statusColor = "bg-red-500";
+            
+            const standing = calculateAttendanceStanding(courseLogs);
+            const standingStyle = getStandingStyles(standing.level);
+
+            return `
+            <div class="card p-5 hover:shadow-lg transition-all border border-slate-100 dark:border-slate-700/50">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="font-bold text-lg dark:text-white leading-tight">${c.code}</h3>
+                        <p class="text-xs text-slate-500">${c.name}</p>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mb-4">
+                    <div class="h-1.5 rounded-full ${statusColor}" style="width: ${rate}%"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs mb-4">
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-1.5 rounded">
+                        <div class="font-bold text-sm">${present}</div> P
+                    </div>
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 p-1.5 rounded">
+                        <div class="font-bold text-sm">${late}</div> L
+                    </div>
+                    <div class="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-1.5 rounded">
+                        <div class="font-bold text-sm">${absent}</div> A
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Standing Status</div>
+                    <div class="p-3 rounded-xl border ${standingStyle.bgClasses} flex flex-col gap-1">
+                        <div class="flex items-center justify-between font-bold text-sm mb-1">
+                            <span>${standingStyle.icon} ${standing.status}</span>
+                            <span>${standing.equivalentAbsences} / ${standing.limit}</span>
+                        </div>
+                        <div class="flex justify-between text-xs opacity-75">
+                            <span>Absence Equivalent</span>
+                            <span>${standing.remainingLates} lates remaining</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      function renderBadges(courses, logs) {
+        const container = document.getElementById("badgesContainer");
+        const badges = [];
+
+        // Badge Logic
+        // 1. Perfect Attendance Badge (100% in any course with at least 3 sessions)
+        const perfectCourses = courses.filter((c) => {
+          const courseLogs = logs.filter((l) => l.course_code === c.code);
+          return (
+            courseLogs.length >= 3 &&
+            courseLogs.every((l) => l.status === "PRESENT")
+          );
+        });
+        if (perfectCourses.length > 0) {
+          badges.push({
+            icon: "verified",
+            color:
+              "text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800",
+            title: "Perfect Attendance",
+            desc:
+              "100% presence in " +
+              perfectCourses.map((c) => c.code).join(", "),
+          });
+        }
+
+        // 2. Consistent Logger (Total > 15 logs)
+        if (logs.length >= 15) {
+          badges.push({
+            icon: "local_fire_department",
+            color:
+              "text-orange-500 bg-orange-100 dark:bg-orange-900/30 dark:border-orange-800",
+            title: "On Fire!",
+            desc: "Over 15 recorded attendance sessions.",
+          });
+        }
+
+        // 3. Early Bird (Mostly present without lates)
+        const totalLates = logs.filter((l) => l.status === "LATE").length;
+        const totalPresent = logs.filter((l) => l.status === "PRESENT").length;
+        if (totalPresent > 5 && totalLates === 0) {
+          badges.push({
+            icon: "alarm_on",
+            color:
+              "text-blue-500 bg-blue-100 dark:bg-blue-900/30 dark:border-blue-800",
+            title: "Early Bird",
+            desc: "Always on time! No late records.",
+          });
+        }
+
+        if (badges.length === 0) {
+          container.innerHTML =
+            '<p class="text-slate-500 italic bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border dark:border-slate-700">Keep attending classes to earn badges!</p>';
+          return;
+        }
+
+        container.innerHTML = badges
+          .map(
+            (b) => `
+            <div class="flex items-center gap-3 bg-white dark:bg-slate-800 border dark:border-slate-700 px-4 py-3 rounded-2xl shadow-sm animate-fade w-full sm:w-auto min-w-[240px]">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center ${b.color} border">
+                    <span class="material-symbols-rounded text-2xl">${b.icon}</span>
+                </div>
+                <div>
+                    <div class="font-bold dark:text-white leading-tight">${b.title}</div>
+                    <div class="text-xs text-slate-500">${b.desc}</div>
+                </div>
+            </div>
+        `,
+          )
+          .join("");
+      }
+
+      function renderHistory() {
+        const filter = document.getElementById("courseFilter").value;
+        const tbody = document.getElementById("fullHistoryTable");
+
+        let filteredLogs = allLogs;
+        if (filter !== "all") {
+          filteredLogs = allLogs.filter((l) => l.course_code === filter);
+        }
+
+        if (filteredLogs.length === 0) {
+          tbody.innerHTML =
+            "<tr><td colspan='3' class='p-6 text-center text-slate-400'>No attendance records found.</td></tr>";
+          return;
+        }
+
+        // Sort by timestamp desc
+        filteredLogs.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+        );
+
+        tbody.innerHTML = filteredLogs
+          .map((l) => {
+            const showReasonBtn =
+              isOwnProfile && (l.status === "ABSENT" || l.status === "EXCUSED");
+            const reasonText = l.reason
+              ? `<div class="text-[10px] text-maroon dark:text-gold font-bold uppercase tracking-widest mt-1 flex items-center gap-1"><span class="material-symbols-rounded text-sm">info</span> ${l.reason}</div>`
+              : "";
+
+            return `
+            <tr class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 group">
+                <td class="p-4 align-middle">
+                    <div class="font-semibold text-slate-800 dark:text-slate-200">${formatDate(l.timestamp)}</div>
+                    <div class="text-xs text-slate-500">${formatTime(l.timestamp)}</div>
+                </td>
+                <td class="p-4 align-middle font-mono font-medium text-slate-600 dark:text-slate-400">
+                    ${l.course_code}
+                    ${reasonText}
+                </td>
+                <td class="p-4 text-center align-middle">
+                    <div class="flex flex-col items-center gap-2">
+                        ${window.getStatusBadge(l.status)}
+                        ${showReasonBtn ? `<button onclick="openReasonModal(${l.id})" class="text-[10px] font-black uppercase text-slate-400 hover:text-maroon dark:hover:text-gold transition-colors flex items-center gap-1"><span class="material-symbols-rounded text-[14px]">edit_note</span> ${l.reason ? "Change Reason" : "Set Reason"}</button>` : ""}
+                    </div>
+                </td>
+            </tr>
+            `;
+          })
+          .join("");
+      }
+
+      window.openReasonModal = function (id) {
+        document.getElementById("reasonLogId").value = id;
+        document.getElementById("reasonModal").classList.remove("hidden");
+      };
+
+      let isSavingReason = false;
+      window.saveReason = async function (reason) {
+        if (isSavingReason) return;
+        isSavingReason = true;
+        const id = document.getElementById("reasonLogId").value;
+        try {
+          const res = await updateAttendanceReason(id, reason);
+          if (res.success) {
+            showToast("Reason updated successfully");
+            document.getElementById("reasonModal").classList.add("hidden");
+            loadProfileData(); // Refresh
+          } else {
+            showToast(res.error || "Failed to update reason", "error");
+          }
+        } catch (e) {
+          showToast("Network error", "error");
+        } finally {
+          isSavingReason = false;
+        }
+      };
+      
+      // Private Notes Logic
+      let currentNoteStudentId = null;
+      let currentNoteTag = '';
+      
+      async function openNoteModal(studentId, studentName) {
+         currentNoteStudentId = studentId;
+         currentNoteTag = '';
+         document.getElementById('pn_student_name').innerText = studentName;
+         document.getElementById('privateNoteModal').classList.remove('hidden');
+         document.getElementById('pn_new_text').value = '';
+         document.querySelectorAll('.pn-tag-btn').forEach(b => {
+             b.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+             b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+         });
+         await loadNotes();
+      }
+      
+      function closeNoteModal() {
+         document.getElementById('privateNoteModal').classList.add('hidden');
+         currentNoteStudentId = null;
+      }
+      
+      function selectNoteTag(btn, tag) {
+         currentNoteTag = tag;
+         document.querySelectorAll('.pn-tag-btn').forEach(b => {
+             b.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+             b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+         });
+         btn.classList.add('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+         btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+      }
+      
+      async function loadNotes() {
+         const list = document.getElementById('pn_notes_list');
+         list.innerHTML = `<div class="text-center p-4 text-slate-400 text-xs font-bold">Loading...</div>`;
+         try {
+             const notes = await fetchProfessorNotes(currentNoteStudentId);
+             if (notes && notes.length > 0) {
+                 list.innerHTML = notes.map(n => `
+                    <div class="bg-white dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700 relative group">
+                        ${n.tag ? `<span class="px-2 py-0.5 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2 inline-block">${n.tag}</span>` : ''}
+                        <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap">${n.note_text}</p>
+                        <div class="flex items-center justify-between mt-2">
+                           <span class="text-[9px] text-slate-400">${new Date(n.updated_at).toLocaleString()}</span>
+                           <button onclick="deleteNote(${n.id})" class="text-rose-500/50 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-rounded text-sm">delete</span></button>
+                        </div>
+                    </div>
+                 `).join('');
+             } else {
+                 list.innerHTML = `<div class="text-center p-8 text-slate-400 text-xs font-bold flex flex-col items-center gap-2"><span class="material-symbols-rounded opacity-30 text-3xl">speaker_notes_off</span>No private notes yet</div>`;
+             }
+         } catch(e) {
+             list.innerHTML = `<div class="text-rose-500 text-xs text-center p-4">Error loading notes.</div>`;
+         }
+      }
+      
+      async function submitNewNote() {
+         const text = document.getElementById('pn_new_text').value;
+         if (!text.trim()) return showToast('Note text is required.', 'error');
+         
+         const res = await saveProfessorNote(currentNoteStudentId, text, currentNoteTag);
+         if (res && res.success) {
+            document.getElementById('pn_new_text').value = '';
+            document.querySelectorAll('.pn-tag-btn').forEach(b => {
+                b.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+                b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+            });
+            currentNoteTag = '';
+            await loadNotes();
+            showToast('Private note saved.');
+         } else {
+            showToast('Failed to save note.', 'error');
+         }
+      }
+      
+      async function deleteNote(noteId) {
+         if (!confirm("Delete this private note?")) return;
+         const res = await deleteProfessorNote(noteId);
+         if (res && res.success) {
+             await loadNotes();
+             showToast('Note deleted.');
+         }
+      }
+
+      loadProfileData();
+
+      // Make nav items dynamic correctly depending on user role
+      if (user.role !== "student") {
+        const d = document.getElementById("nav-dash");
+        if (d) d.href = "index.html"; // Default
+      }
+    </script>
+  </body>
+</html>

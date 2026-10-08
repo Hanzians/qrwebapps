@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Scan — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: {
+                maroon: "#800000",
+                gold: "#DAA520",
+                light: "#ffb3b2",
+                dark: "#560000",
+              },
+              surface: {
+                DEFAULT: "var(--md-sys-color-surface)",
+                container: "var(--md-sys-color-surface-container)",
+                highest: "var(--md-sys-color-surface-container-highest)",
+                high: "var(--md-sys-color-surface-container-high)",
+                low: "var(--md-sys-color-surface-container-low)",
+              },
+              primary: {
+                DEFAULT: "var(--md-sys-color-primary)",
+                on: "var(--md-sys-color-on-primary)",
+                container: "var(--md-sys-color-primary-container)",
+              },
+              secondary: {
+                DEFAULT: "var(--md-sys-color-secondary)",
+                on: "var(--md-sys-color-on-secondary)",
+                container: "var(--md-sys-color-secondary-container)",
+              },
+              tertiary: {
+                DEFAULT: "var(--md-sys-color-tertiary)",
+                on: "var(--md-sys-color-on-tertiary)",
+                container: "var(--md-sys-color-tertiary-container)",
+              },
+            },
+            borderRadius: {
+              xl: "1rem",
+              "2xl": "1.5rem",
+              "3xl": "1.75rem",
+              "4xl": "2rem",
+            },
+            boxShadow: {
+              soft: "0 4px 20px rgba(0, 0, 0, 0.05)",
+              float: "0 8px 30px rgba(0, 0, 0, 0.08)",
+              glass: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
+            },
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+    <div
+      id="qrModal"
+      class="fixed inset-0 bg-black/95 hidden backdrop-blur-xl flex flex-col items-center justify-center z-50 p-6 transition-all duration-500"
+      onclick="closeQRModal()"
+    >
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-indigo-500/10 to-transparent pointer-events-none"
+      ></div>
+      <button
+        class="absolute top-6 right-6 sm:top-10 sm:right-10 w-14 h-14 rounded-full bg-white/10 text-white hover:bg-white/20 hover:scale-110 transition-all flex items-center justify-center border border-white/10 shadow-2xl z-10"
+        onclick="closeQRModal()"
+      >
+        <span class="material-symbols-rounded text-2xl">close</span>
+      </button>
+      <div
+        class="text-white/80 font-black mb-8 sm:mb-12 tracking-widest uppercase text-lg sm:text-2xl text-center flex items-center gap-3 drop-shadow-md z-10"
+      >
+        <span class="material-symbols-rounded text-3xl text-indigo-400"
+          >qr_code_scanner</span
+        >
+        <span id="qrModalLabelText">Live Session QR</span>
+      </div>
+      <div
+        id="largeQRContainer"
+        class="bg-white/95 backdrop-blur-xl p-8 sm:p-12 rounded-[40px] shadow-[0_0_80px_rgba(99,102,241,0.15)] shrink max-w-[90vw] max-h-[70vh] overflow-hidden flex items-center justify-center pointer-events-none border border-white/20 z-10 animate-modal"
+      ></div>
+      <div
+        id="largeQRTimer"
+        class="px-10 py-4 bg-white/5 backdrop-blur-md rounded-full text-indigo-200 mt-12 font-black text-xs uppercase tracking-widest border border-white/10 shadow-lg flex items-center gap-2 z-10"
+      >
+        <span class="material-symbols-rounded text-[16px] animate-spin"
+          >refresh</span
+        >
+        Refreshing in 10s...
+      </div>
+    </div>
+    <div
+      id="manualModal"
+      class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300"
+    >
+      <div
+        class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] border border-slate-200/50 dark:border-slate-700/50 shadow-2xl w-full max-w-lg overflow-hidden animate-modal relative"
+      >
+        <div
+          class="absolute -right-32 -top-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"
+        ></div>
+        <div
+          class="px-8 py-6 flex justify-between items-center border-b border-indigo-100 dark:border-indigo-800/30 bg-indigo-50/50 dark:bg-indigo-900/20 backdrop-blur-md"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-indigo-100 dark:bg-indigo-800/50 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700/50 shadow-sm"
+            >
+              <span class="material-symbols-rounded">person_add</span>
+            </div>
+            <h3
+              class="text-indigo-900 dark:text-indigo-100 font-black text-xl tracking-tight"
+              id="manualModalTitle"
+            >
+              Assisted Entry
+            </h3>
+          </div>
+          <button
+            onclick="closeManualModal()"
+            class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 text-slate-500 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center shrink-0 shadow-sm"
+          >
+            <span class="material-symbols-rounded text-sm">close</span>
+          </button>
+        </div>
+        <div class="p-8 relative z-10">
+          <div id="studentSearchArea" class="hidden">
+            <div class="relative mb-6">
+              <span
+                class="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400"
+                >search</span
+              >
+              <input
+                id="studentSearch"
+                class="input pl-12 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 shadow-inner"
+                placeholder="Search name, ID, or section..."
+                onkeypress="handleSearch(event)"
+              />
+            </div>
+            <div
+              id="studentList"
+              class="max-h-[250px] sm:max-h-[350px] overflow-y-auto space-y-3 pr-2 custom-scrollbar"
+            >
+              <div
+                class="text-center py-10 text-slate-400 font-black text-[10px] uppercase tracking-widest"
+              >
+                No search results
+              </div>
+            </div>
+          </div>
+          <div id="basicManualEntry">
+            <label
+              class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1"
+              id="manualModalLabel"
+              >Entry Details</label
+            >
+            <input
+              id="manualInput"
+              class="input h-14 rounded-2xl mb-6 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 shadow-inner"
+              placeholder="Enter here..."
+            />
+            <button
+              onclick="submitManual()"
+              class="btn-primary w-full h-14 shadow-lg shadow-indigo-500/20 text-xs tracking-widest uppercase font-black hover:scale-[1.02] flex justify-center items-center gap-2 rounded-2xl transition-transform"
+            >
+              <span class="material-symbols-rounded text-lg">how_to_reg</span>
+              Submit Attendance
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Post-Session Download Modal -->
+    <div
+      id="postSessionModal"
+      class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300"
+    >
+      <div
+        class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] max-w-4xl w-full border border-slate-200/50 dark:border-slate-700/50 shadow-2xl overflow-hidden relative animate-modal flex flex-col md:flex-row max-h-[90vh]"
+      >
+        <div
+          class="absolute -right-32 -bottom-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"
+        ></div>
+
+        <div
+          class="p-6 md:p-8 bg-slate-50/50 dark:bg-slate-900/50 md:w-[45%] flex flex-col justify-between custom-scrollbar overflow-y-auto relative z-10 border-b md:border-b-0 md:border-r border-slate-200/50 dark:border-slate-700/50"
+        >
+          <div>
+            <div
+              class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30 flex items-center justify-center mb-6 shadow-sm"
+            >
+              <span class="material-symbols-rounded text-2xl">task_alt</span>
+            </div>
+            <h3
+              class="text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight leading-none"
+              id="psm_course"
+            >
+              Session Saved
+            </h3>
+            <p
+              class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-8"
+              id="psm_course_name"
+            >
+              Updating stats...
+            </p>
+
+            <div class="grid grid-cols-2 gap-3 mb-8">
+              <div
+                class="bg-white/80 dark:bg-slate-800/80 p-4 flex flex-col items-center justify-center rounded-[20px] shadow-sm border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm"
+              >
+                <span
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"
+                  >Rate</span
+                >
+                <span
+                  class="text-3xl font-black text-slate-800 dark:text-white tracking-tighter"
+                  id="psm_rate"
+                  >--%</span
+                >
+              </div>
+              <div
+                class="bg-emerald-50/80 dark:bg-emerald-900/20 p-4 flex flex-col items-center justify-center rounded-[20px] shadow-sm border border-emerald-200/50 dark:border-emerald-800/30 backdrop-blur-sm"
+              >
+                <span
+                  class="text-[10px] font-black text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-widest mb-1"
+                  >Present</span
+                >
+                <span
+                  class="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter"
+                  id="psm_present"
+                  >--</span
+                >
+              </div>
+              <div
+                class="col-span-2 flex justify-between px-3 py-2.5 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/50 dark:border-slate-700/50 text-[11px] font-black uppercase tracking-widest text-slate-500 backdrop-blur-sm shadow-sm mt-1"
+              >
+                <span class="flex items-center gap-1.5"
+                  ><span
+                    class="w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500 shadow-sm"
+                  ></span
+                  >Late:
+                  <span id="psm_late" class="text-amber-600 dark:text-amber-400"
+                    >--</span
+                  ></span
+                >
+                <span class="flex items-center gap-1.5"
+                  ><span
+                    class="w-2 h-2 rounded-full bg-rose-400 dark:bg-rose-500 shadow-sm"
+                  ></span
+                  >Absent:
+                  <span id="psm_absent" class="text-rose-600 dark:text-rose-400"
+                    >--</span
+                  ></span
+                >
+                <span class="flex items-center gap-1.5"
+                  ><span
+                    class="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500 shadow-sm"
+                  ></span
+                  >Excused:
+                  <span
+                    id="psm_excused"
+                    class="text-blue-600 dark:text-blue-400"
+                    >--</span
+                  ></span
+                >
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <button
+                onclick="downloadSessionReport('pdf')"
+                class="w-full flex items-center justify-between p-3.5 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm group backdrop-blur-sm"
+              >
+                <div class="flex items-center gap-3">
+                  <span
+                    class="material-symbols-rounded text-rose-500 bg-rose-50 dark:bg-rose-900/20 p-2 border border-rose-100 dark:border-rose-800/50 rounded-xl shadow-sm"
+                    >picture_as_pdf</span
+                  ><span
+                    class="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                    >Export PDF</span
+                  >
+                </div>
+                <span
+                  class="material-symbols-rounded text-slate-400 text-sm group-hover:translate-x-1 transition-transform"
+                  >arrow_forward</span
+                >
+              </button>
+              <button
+                onclick="downloadSessionReport('excel')"
+                class="w-full flex items-center justify-between p-3.5 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm group backdrop-blur-sm"
+              >
+                <div class="flex items-center gap-3">
+                  <span
+                    class="material-symbols-rounded text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 p-2 border border-emerald-100 dark:border-emerald-800/50 rounded-xl shadow-sm"
+                    >grid_on</span
+                  ><span
+                    class="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                    >Export XLSX</span
+                  >
+                </div>
+                <span
+                  class="material-symbols-rounded text-slate-400 text-sm group-hover:translate-x-1 transition-transform"
+                  >arrow_forward</span
+                >
+              </button>
+              <button
+                onclick="downloadSessionReport('audit')"
+                class="w-full flex items-center justify-between p-3.5 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm group backdrop-blur-sm"
+              >
+                <div class="flex items-center gap-3">
+                  <span
+                    class="material-symbols-rounded text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 p-2 border border-indigo-100 dark:border-indigo-800/50 rounded-xl shadow-sm"
+                    >manage_search</span
+                  ><span
+                    class="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                    >Full Audit Export</span
+                  >
+                </div>
+                <span
+                  class="material-symbols-rounded text-slate-400 text-sm group-hover:translate-x-1 transition-transform"
+                  >arrow_forward</span
+                >
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="p-6 md:p-8 md:w-[55%] flex flex-col bg-transparent relative z-10 w-full"
+        >
+          <div
+            class="flex items-start justify-between mb-6 bg-rose-50/50 dark:bg-rose-900/10 p-4 rounded-2xl border border-rose-100/50 dark:border-rose-800/30 shadow-sm"
+          >
+            <div>
+              <h4
+                class="text-[10px] uppercase tracking-widest font-black text-rose-600 dark:text-rose-400 flex items-center gap-1.5"
+              >
+                <span class="material-symbols-rounded text-[14px]"
+                  >notification_important</span
+                >
+                Action Needed
+              </h4>
+              <p class="text-[9px] text-slate-500 font-bold mt-1.5">
+                Students flagging global threshold limits
+              </p>
+            </div>
+            <div
+              class="bg-rose-100 dark:bg-rose-900/30 p-1.5 rounded-lg border border-rose-200/50 dark:border-rose-800/50 shrink-0"
+            >
+              <span
+                class="material-symbols-rounded text-rose-500/80 text-xl block"
+                >priority_high</span
+              >
+            </div>
+          </div>
+          <div
+            class="flex-1 overflow-y-auto min-h-[200px] max-h-[250px] md:max-h-[400px] space-y-3 mb-6 custom-scrollbar pr-2 w-full"
+            id="psm_attention_list"
+          >
+            <div
+              class="flex flex-col items-center justify-center h-full text-slate-400 text-[10px] font-black uppercase tracking-widest gap-2 opacity-50"
+            >
+              <span class="material-symbols-rounded text-2xl animate-spin"
+                >refresh</span
+              >
+              Calculating standings...
+            </div>
+          </div>
+          <button
+            onclick="closePostSessionModal()"
+            class="btn-primary w-full h-14 uppercase text-[11px] tracking-widest font-black shrink-0 mt-auto rounded-2xl shadow-lg shadow-indigo-500/25 border border-indigo-500/50 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+          >
+            <span class="material-symbols-rounded text-lg">done_all</span>
+            Acknowledge & Close
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Session Continuity Summary Modal -->
+    <div
+      id="continuitySummaryModal"
+      class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300"
+    >
+      <div
+        class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] max-w-sm w-full border border-slate-200/50 dark:border-slate-700/50 shadow-2xl p-8 relative animate-modal max-h-[80vh] overflow-hidden flex flex-col"
+      >
+        <div
+          class="absolute -right-32 -bottom-32 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"
+        ></div>
+        <div class="relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-1">
+          <div
+            class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50 flex items-center justify-center mb-6 shadow-sm"
+          >
+            <span class="material-symbols-rounded text-2xl">analytics</span>
+          </div>
+          <h3
+            class="text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight leading-none"
+          >
+            Continuity
+          </h3>
+          <p
+            class="text-[11px] text-slate-400 uppercase font-black tracking-widest mb-8"
+          >
+            Student Connection Status
+          </p>
+
+          <div class="space-y-3 mb-6">
+            <div
+              class="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-emerald-200/50 dark:border-emerald-800/30 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse relative z-10"
+                  ></span>
+                </div>
+                <span
+                  class="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200"
+                  >Stable</span
+                >
+              </div>
+              <span
+                id="summStableCount"
+                class="text-sm font-black text-emerald-600 dark:text-emerald-400"
+                >0</span
+              >
+            </div>
+
+            <div
+              class="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-amber-200/50 dark:border-amber-800/30 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full bg-amber-500 relative z-10"
+                  ></span>
+                </div>
+                <span
+                  class="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200"
+                  >Reconnected</span
+                >
+              </div>
+              <span
+                id="summReconnectedCount"
+                class="text-sm font-black text-amber-600 dark:text-amber-400"
+                >0</span
+              >
+            </div>
+
+            <div
+              class="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-rose-200/50 dark:border-rose-800/30 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full bg-rose-500 relative z-10"
+                  ></span>
+                </div>
+                <span
+                  class="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200"
+                  >Interrupted</span
+                >
+              </div>
+              <span
+                id="summInterruptedCount"
+                class="text-sm font-black text-rose-600 dark:text-rose-400"
+                >0</span
+              >
+            </div>
+          </div>
+
+          <p
+            id="continuityWarningMsg"
+            class="text-[11px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200/50 dark:border-amber-800/50 mb-6 hidden items-center gap-2"
+          >
+            <span class="material-symbols-rounded text-sm">warning</span>
+            Connectivity issues detected.
+          </p>
+        </div>
+        <div
+          class="relative z-10 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800"
+        >
+          <button
+            onclick="
+              document
+                .getElementById('continuitySummaryModal')
+                .classList.add('hidden')
+            "
+            class="btn-primary w-full h-14 uppercase text-[11px] tracking-widest font-black rounded-2xl shadow-lg shadow-amber-500/20"
+          >
+            Close Summary
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >qr_code_scanner</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+      <main
+        class="flex-1 p-4 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden relative"
+      >
+        <div
+          class="absolute -left-64 -top-64 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"
+        ></div>
+
+        <div
+          class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 relative z-10"
+        >
+          <div class="flex items-center gap-6">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden shrink-0 text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all"
+            >
+              <span class="material-symbols-rounded" style="font-size: 2em"
+                >menu</span
+              >
+            </button>
+            <div
+              class="h-16 w-3 bg-indigo-500 rounded-full shrink-0 shadow-lg shadow-indigo-500/20"
+            ></div>
+            <div>
+              <h1
+                class="text-4xl sm:text-5xl font-black tracking-tighter dark:text-white leading-none flex items-center gap-4"
+              >
+                Attendance Hub
+                <span
+                  class="material-symbols-rounded text-4xl text-indigo-500 dark:text-indigo-400 opacity-80 hidden sm:block"
+                  >filter_center_focus</span
+                >
+              </h1>
+              <p
+                class="text-slate-500 font-bold mt-2 text-[13px] tracking-wide"
+              >
+                Live Session & Check-in Control
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 w-full sm:w-auto">
+            <button
+              onclick="toggleTheme()"
+              class="shrink-0 w-14 h-14 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:scale-105"
+            >
+              <span class="material-symbols-rounded text-2xl">contrast</span>
+            </button>
+            <button
+              onclick="openManualModal()"
+              class="col-span-2 sm:col-span-1 h-14 w-full sm:w-auto flex items-center justify-center gap-2 px-6 shrink truncate bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors shadow-sm"
+            >
+              <span class="material-symbols-rounded shrink-0 text-[18px]"
+                >keyboard</span
+              >
+              <span id="manualModalBtnText" class="truncate"
+                >Enter Session Code</span
+              >
+            </button>
+          </div>
+        </div>
+        <div
+          class="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10 w-full lg:min-h-[75vh]"
+        >
+          <div
+            class="card glass animate-fade shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden p-6 sm:p-8 flex flex-col justify-start"
+          >
+            <h3
+              class="text-xl font-black mb-8 dark:text-white flex items-center gap-3 self-start w-full"
+            >
+              <span
+                class="material-symbols-rounded text-indigo-500 p-2 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm rounded-xl"
+                >qr_code_scanner</span
+              >
+              Attendance Scanner
+            </h3>
+
+            <div
+              id="adminControlsArea"
+              class="hidden w-full flex-1 flex flex-col justify-between"
+            >
+              <div
+                class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 w-full shrink-0"
+              >
+                <div>
+                  <label
+                    class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+                    >Course</label
+                  >
+                  <select
+                    id="courseSelect"
+                    class="input py-3 px-4 text-sm font-bold rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-sm appearance-none w-full"
+                  >
+                    <option value="" disabled selected>
+                      Loading directory...
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+                    >Mode</label
+                  >
+                  <select
+                    id="modeSelect"
+                    class="input py-3 px-4 text-[13px] font-black rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-sm appearance-none w-full tracking-wider"
+                  >
+                    <option value="PHYSICAL" selected>🎓 PHYSICAL</option>
+                    <option value="ONLINE">🌐 ONLINE</option>
+                    <option value="HYBRID">🌓 HYBRID</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    id="roomLabel"
+                    class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+                    >Room</label
+                  >
+                  <select
+                    id="roomSelect"
+                    class="input py-3 px-4 text-sm font-bold rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-sm appearance-none w-full disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-900"
+                  >
+                    <option value="" disabled selected>Select Room</option>
+                    <option value="null" class="hidden">N/A - Online Mode</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Optional Meeting Link for Online/Hybrid session -->
+              <div id="meetingLinkWrapper" class="hidden mb-8 w-full shrink-0">
+                <label
+                  class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+                  >Online Meeting Link</label
+                >
+                <div class="relative">
+                  <span
+                    class="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400"
+                    >link</span
+                  >
+                  <input
+                    id="meetingLinkInput"
+                    type="url"
+                    placeholder="https://meet.google.com/abc-defg-hij"
+                    class="input pl-12 shadow-sm bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-2xl h-14 w-full focus:ring-indigo-500 font-medium text-sm"
+                  />
+                </div>
+                <p
+                  class="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-bold ml-1"
+                >
+                  Students will securely access this link after their attendance is verified.
+                </p>
+              </div>
+
+              <div
+                id="qrDisplayArea"
+                class="hidden w-full bg-slate-900 rounded-[32px] sm:rounded-[40px] overflow-hidden relative shadow-2xl shadow-indigo-500/10 border border-slate-700/50 group flex flex-col items-center justify-center p-6 sm:p-12 transition-all duration-700 hover:shadow-indigo-500/20 cursor-pointer flex-1 min-h-[350px] my-6"
+                onclick="openQRModal()"
+              >
+                <div
+                  class="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none"
+                ></div>
+                <div
+                  id="qrcode"
+                  class="bg-white p-6 sm:p-8 rounded-[32px] z-10 shadow-[0_0_60px_rgba(99,102,241,0.15)] transition-transform duration-500 group-hover:scale-[1.05]"
+                ></div>
+                <div
+                  id="onlineCodeDisplay"
+                  class="hidden flex-col items-center justify-center z-10 w-full h-full cursor-default"
+                >
+                  <div
+                    class="text-indigo-200/60 font-black mb-6 tracking-widest uppercase text-xs flex items-center gap-2"
+                  >
+                    <span class="material-symbols-rounded text-sm"
+                      >keyboard</span
+                    >
+                    Join Code
+                  </div>
+                  <div
+                    id="largeSessionCode"
+                    class="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white tracking-widest break-words text-center px-4 w-full drop-shadow-lg"
+                    style="
+                      font-feature-settings: &quot;tnum&quot;;
+                      line-height: 1;
+                    "
+                  ></div>
+                </div>
+                <div
+                  id="secureTimer"
+                  class="px-6 py-2.5 bg-white/10 backdrop-blur-md rounded-full text-indigo-100 mt-10 font-black text-[10px] uppercase tracking-widest z-10 border border-white/10 shadow-sm flex items-center gap-2"
+                >
+                  <span
+                    class="material-symbols-rounded text-[14px] animate-spin"
+                    >refresh</span
+                  >
+                  Refreshing in 10s...
+                </div>
+                <div
+                  class="absolute inset-0 border-2 border-indigo-500/20 pointer-events-none m-4 sm:m-6 rounded-[28px] sm:rounded-[36px] group-hover:scale-[0.98] transition-transform duration-700"
+                ></div>
+                <div class="absolute top-0 right-0 p-6 sm:p-8">
+                  <span class="relative flex h-3 w-3">
+                    <span
+                      class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                    ></span>
+                    <span
+                      class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"
+                    ></span>
+                  </span>
+                </div>
+                <div
+                  class="absolute bottom-6 text-indigo-200/50 text-[9px] uppercase tracking-widest font-black opacity-0 transition-opacity group-hover:opacity-100 z-10 flex items-center gap-1"
+                  id="qrEnlargeHint"
+                >
+                  <span class="material-symbols-rounded text-[14px]"
+                    >zoom_in</span
+                  >
+                  Click to Enlarge
+                </div>
+              </div>
+
+              <div
+                class="flex flex-col sm:flex-row gap-4 mt-auto w-full shrink-0"
+              >
+                <button
+                  id="startBtn"
+                  class="btn-primary flex-1 h-16 rounded-2xl shadow-lg shadow-indigo-500/25 text-xs font-black uppercase tracking-widest hover:scale-[1.02] flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-rounded text-lg"
+                    >flight_takeoff</span
+                  >
+                  Start Session
+                </button>
+                <button
+                  id="refreshQRBtn"
+                  class="flex-1 h-16 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 border-slate-300 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 hidden shadow-sm backdrop-blur-sm"
+                  disabled
+                >
+                  <span class="material-symbols-rounded text-lg"
+                    >autorenew</span
+                  >
+                  Force Refresh
+                </button>
+                <button
+                  id="endSessionBtn"
+                  class="flex-1 h-16 rounded-2xl font-black text-[11px] uppercase tracking-widest border border-rose-200/50 dark:border-rose-800/50 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 dark:hover:text-white transition-all flex items-center justify-center gap-2 hidden shadow-sm backdrop-blur-sm"
+                  disabled
+                >
+                  <span class="material-symbols-rounded text-lg"
+                    >stop_circle</span
+                  >
+                  End Session
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="studentScannerArea"
+              class="hidden w-full flex-1 flex flex-col justify-center"
+            >
+              <div
+                class="bg-slate-950 rounded-[32px] sm:rounded-[40px] overflow-hidden relative shadow-2xl shadow-rose-900/10 border border-slate-800/80 group"
+                style="min-height: 400px"
+              >
+                <div id="reader" class="w-full h-full opacity-80"></div>
+                <div
+                  class="absolute inset-0 border-2 border-rose-500/30 pointer-events-none m-6 sm:m-12 rounded-[28px] sm:rounded-[48px] group-hover:scale-[1.02] transition-transform duration-700"
+                ></div>
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-40 group-hover:opacity-20 transition-opacity"
+                ></div>
+                <div
+                  class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-64 sm:h-64 border-[3px] border-white/20 rounded-[32px] pointer-events-none group-hover:border-white/40 transition-colors"
+                >
+                  <div
+                    class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white/80 rounded-tl-[32px] -ml-1 -mt-1"
+                  ></div>
+                  <div
+                    class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white/80 rounded-tr-[32px] -mr-1 -mt-1"
+                  ></div>
+                  <div
+                    class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white/80 rounded-bl-[32px] -ml-1 -mb-1"
+                  ></div>
+                  <div
+                    class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white/80 rounded-br-[32px] -mr-1 -mb-1"
+                  ></div>
+                </div>
+              </div>
+              <div
+                id="scan-status"
+                class="text-center text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mt-8 h-5 flex items-center justify-center gap-2"
+              >
+                <span
+                  class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 animate-pulse"
+                ></span>
+                Standby Mode
+              </div>
+              <div
+                id="sessionCountdown"
+                class="text-center text-rose-500 font-black text-xs sm:text-sm mt-4 hidden bg-rose-50 dark:bg-rose-900/20 py-3 rounded-full tracking-widest uppercase border border-rose-200/50 dark:border-rose-800/50 shadow-sm"
+              ></div>
+              <div
+                class="flex flex-col sm:flex-row gap-4 mt-8 sm:mt-12 justify-center shrink-0 w-full"
+              >
+                <button
+                  id="startScanBtn"
+                  class="btn-primary flex-1 sm:flex-none sm:w-64 h-16 rounded-2xl shadow-lg shadow-indigo-500/20 text-xs font-black uppercase tracking-widest hover:scale-[1.02] flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-rounded text-[20px]"
+                    >qr_code_scanner</span
+                  >
+                  Scan QR Now
+                </button>
+                <button
+                  id="stopScanBtn"
+                  class="flex-1 sm:flex-none sm:w-64 h-16 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 border-slate-300 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 hidden shadow-sm backdrop-blur-sm group"
+                  disabled
+                >
+                  <span
+                    class="material-symbols-rounded text-[20px] group-hover:rotate-90 transition-transform"
+                    >close</span
+                  >
+                  Stop Camera
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="card glass animate-fade delay-200 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden flex flex-col pt-0 h-full"
+          >
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 py-8 px-6 sm:px-8 border-b border-slate-200/50 dark:border-slate-800/50 gap-4 relative"
+            >
+              <div
+                class="absolute right-0 top-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"
+              ></div>
+              <div class="flex-1 min-w-0 z-10">
+                <h3
+                  class="text-2xl font-black dark:text-white tracking-tighter flex items-center gap-3"
+                >
+                  <span
+                    class="material-symbols-rounded text-emerald-500 p-2 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm rounded-xl"
+                    >monitoring</span
+                  >Live Monitor
+                </h3>
+                <div
+                  id="sessionCourse"
+                  class="text-[10px] text-indigo-500 dark:text-indigo-400 font-black uppercase tracking-[0.25em] mt-2 flex flex-wrap items-center gap-2"
+                >
+                  Awaiting Session
+                </div>
+              </div>
+              <div
+                class="flex flex-col items-start sm:items-end gap-4 sm:gap-2 text-left sm:text-right w-full sm:w-auto mt-4 sm:mt-0 shrink-0"
+              >
+                <div
+                  class="flex gap-4 w-full justify-between sm:justify-end"
+                  id="liveStatsContainer"
+                  style="display: none"
+                >
+                  <div class="text-left sm:text-center px-4">
+                    <div
+                      class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-widest flex items-center justify-center gap-1 mb-1"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                      ></span>
+                      Present
+                    </div>
+                    <div
+                      id="presentCount"
+                      class="text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none"
+                    >
+                      0
+                    </div>
+                  </div>
+                  <div
+                    class="text-left sm:text-center px-4 border-l border-slate-200/50 dark:border-slate-700/50"
+                  >
+                    <div
+                      class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-black tracking-widest flex items-center justify-center gap-1 mb-1"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-amber-500"
+                      ></span>
+                      Late
+                    </div>
+                    <div
+                      id="lateCount"
+                      class="text-3xl font-black text-amber-600 dark:text-amber-400 leading-none"
+                    >
+                      0
+                    </div>
+                  </div>
+                  <div
+                    class="text-left sm:text-center px-4 border-l border-slate-200/50 dark:border-slate-700/50"
+                  >
+                    <div
+                      class="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1"
+                    >
+                      Remain
+                    </div>
+                    <div
+                      id="remainingCount"
+                      class="text-3xl font-black text-slate-400 leading-none"
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+                <div
+                  id="simpleScannedContainer"
+                  class="text-left sm:text-right w-full sm:w-auto mt-2 sm:mt-0 flex flex-col items-center sm:items-end"
+                >
+                  <div
+                    class="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase font-black tracking-widest bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-full shadow-sm"
+                  >
+                    Captured
+                  </div>
+                  <div
+                    id="scannedCount"
+                    class="text-6xl sm:text-7xl font-black text-slate-800 dark:text-white tracking-tighter mt-3 leading-[0.8]"
+                  >
+                    0
+                  </div>
+                </div>
+                <button
+                  id="markAbsentBtn"
+                  class="px-5 py-2 mt-4 rounded-xl font-black text-[10px] uppercase tracking-widest border border-rose-200/50 dark:border-rose-800/50 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 dark:hover:text-white transition-all hidden w-full sm:w-auto shadow-sm"
+                >
+                  Mark Remaining Absent
+                </button>
+              </div>
+            </div>
+            <div class="flex-1 overflow-hidden flex flex-col px-6 sm:px-8 pb-6">
+              <div
+                id="continuityOverviewWidget"
+                class="hidden animate-fade mb-8 p-5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-[24px] border border-slate-200/50 dark:border-slate-700/50 flex flex-row gap-4 items-center justify-between shadow-sm shadow-indigo-500/5 relative overflow-hidden"
+              >
+                <div
+                  class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-500/10 rounded-full blur-xl pointer-events-none"
+                ></div>
+                <div class="relative z-10 flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 flex items-center justify-center border border-amber-200/50 dark:border-amber-800/50"
+                  >
+                    <span class="material-symbols-rounded text-[20px]"
+                      >analytics</span
+                    >
+                  </div>
+                  <div>
+                    <h5
+                      class="text-[11px] text-slate-700 dark:text-slate-300 uppercase font-black tracking-widest leading-none mb-1"
+                    >
+                      Continuity
+                    </h5>
+                    <span
+                      class="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-tight"
+                      >Connection Status</span
+                    >
+                  </div>
+                </div>
+                <div class="flex gap-4 sm:gap-6 shrink-0 relative z-10">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+                    ></span>
+                    <span
+                      id="contStableCount"
+                      class="text-sm font-black text-slate-800 dark:text-slate-200"
+                      >0</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span
+                      id="contReconnectedCount"
+                      class="text-sm font-black text-slate-800 dark:text-slate-200"
+                      >0</span
+                    >
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span
+                      id="contInterruptedCount"
+                      class="text-sm font-black text-slate-800 dark:text-slate-200"
+                      >0</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mb-6">
+                <h4
+                  class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2"
+                >
+                  <span class="material-symbols-rounded text-sm">history</span>
+                  Activity Log
+                </h4>
+                <div
+                  class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent mx-4 opacity-50"
+                ></div>
+              </div>
+              <ul
+                id="recentList"
+                class="flex-1 overflow-y-auto space-y-4 pb-10 pr-4 custom-scrollbar"
+              >
+                <li
+                  class="text-slate-400 dark:text-slate-500 text-center italic mt-20 font-medium flex flex-col items-center gap-4"
+                >
+                  <div
+                    class="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center shadow-inner"
+                  >
+                    <span class="material-symbols-rounded text-3xl opacity-40"
+                      >bedtime</span
+                    >
+                  </div>
+                  <span class="text-xs">No active sessions right now...</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/attendance_rules.js"></script>
+    <script src="js/scanner.js"></script>
+    <script>
+      checkAuth();
+      if (window.location.pathname.includes("scan.html")) initScannerPage();
+    </script>
+    <iframe id="hiddenExportFrame" style="position: absolute; width:1px; height:1px; left:-9999px; opacity:0; pointer-events:none;"></iframe>
+  </body>
+</html>

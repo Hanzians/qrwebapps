@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Student Portal — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div
+      id="confirmModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+    >
+      <div
+        class="card bg-white dark:bg-slate-800 rounded-[28px] shadow-2xl w-full max-w-sm overflow-hidden animate-fade"
+      >
+        <div class="p-8 text-center">
+          <div
+            class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6"
+          >
+            <span class="material-symbols-rounded" style="font-size: 32px"
+              >info</span
+            >
+          </div>
+          <h3 id="confirmTitle" class="font-black text-xl tracking-tight mb-2">
+            Notice
+          </h3>
+          <p
+            id="confirmMessage"
+            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8"
+          >
+            Are you sure you want to proceed?
+          </p>
+          <div class="flex gap-3">
+            <button
+              id="confirmCancelBtn"
+              class="flex-1 px-6 py-3 text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl transition-colors uppercase text-xs tracking-widest"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirmConfirmBtn"
+              class="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-600/30 transition-all uppercase text-xs tracking-widest"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interruption Reason Modal -->
+    <div
+      id="reasonModal"
+      class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70]"
+    >
+      <div
+        class="card bg-white dark:bg-slate-800 rounded-[28px] p-6 max-w-sm w-full border border-slate-100 dark:border-slate-700 shadow-2xl animate-fade"
+      >
+        <div
+          class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4"
+        >
+          <span class="material-symbols-rounded">wifi_off</span>
+        </div>
+        <h3 class="text-lg font-black text-slate-800 dark:text-white mb-2">
+          Connection Reconnected
+        </h3>
+        <p
+          class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed"
+        >
+          Your internet connection was interrupted, but you are back! Would you
+          like to provide a brief note/reason for the interruption? (Optional)
+        </p>
+        <input
+          type="text"
+          id="interruptionReasonInput"
+          placeholder="e.g., Low bandwidth, brownout, app restart"
+          class="input bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 h-12 w-full text-xs mb-3 outline-none focus:ring-2 focus:ring-amber-500"
+        />
+        <div class="flex gap-2 justify-end">
+          <button
+            onclick="skipReason()"
+            class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors uppercase text-[10px] tracking-widest"
+          >
+            Skip
+          </button>
+          <button
+            onclick="submitReason()"
+            class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all uppercase text-[10px] tracking-widest"
+          >
+            Submit Note
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="excuseModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-modal relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="bg-transparent px-8 py-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800/50 relative z-10">
+          <h3 class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3 w-full">
+            <span class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+               <span class="material-symbols-rounded">assignment_late</span>
+            </span>
+            File Excuse
+          </h3>
+          <button
+            onclick="
+              document.getElementById('excuseModal').classList.add('hidden')
+            "
+            class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div class="p-6 sm:p-8 space-y-5 relative z-10">
+          <div>
+            <label
+              class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Select Course</label
+            >
+            <select id="ex_course" class="input bg-slate-50 dark:bg-slate-900/50 appearance-none">
+              <option>Loading...</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Date of Absence</label
+            >
+            <input type="date" id="ex_date" class="input bg-slate-50 dark:bg-slate-900/50" />
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Reason</label
+            >
+            <textarea
+              id="ex_reason"
+              class="input bg-slate-50 dark:bg-slate-900/50 h-24 resize-none"
+              placeholder="Reason for absence..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/20 flex justify-end gap-3 border-t border-slate-200/50 dark:border-slate-800/50 relative z-10 backdrop-blur-sm">
+          <button
+            onclick="document.getElementById('excuseModal').classList.add('hidden')"
+            class="px-6 py-3 text-slate-500 font-bold hover:text-slate-800 dark:hover:text-slate-300 transition-colors uppercase text-xs tracking-widest"
+          >
+            Cancel
+          </button>
+          <button
+            onclick="submitExcuse()"
+            class="px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg shadow-blue-500/30 transition-all active:scale-95 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-4 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden custom-scrollbar"
+      >
+        <div class="flex flex-col mb-8 gap-6 animate-fade">
+           <div class="flex justify-between items-center w-full">
+             <div class="flex items-center gap-4">
+               <button
+                 onclick="toggleSidebar()"
+                 class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+               >
+                 <span class="material-symbols-rounded text-3xl">menu</span>
+               </button>
+             </div>
+             <div class="flex gap-4 items-center">
+                <button
+                  onclick="toggleTheme()"
+                  class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm hover:shadow-md flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-maroon dark:hover:text-gold transition-all duration-300"
+                >
+                  <span class="material-symbols-rounded text-xl">contrast</span>
+                </button>
+             </div>
+           </div>
+           
+           <div class="card bg-gradient-to-br from-maroon/5 via-transparent to-maroon/5 dark:from-maroon/10 dark:to-transparent border-none flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 py-8 md:py-10 relative overflow-hidden glass">
+              <div class="absolute -top-32 -right-32 w-96 h-96 bg-maroon/10 rounded-full blur-3xl dark:bg-maroon/20 mix-blend-multiply dark:mix-blend-screen pointer-events-none"></div>
+              <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-gold/10 rounded-full blur-3xl dark:bg-gold/10 mix-blend-multiply dark:mix-blend-screen pointer-events-none"></div>
+              
+              <div class="flex-1 min-w-0 z-10 w-full">
+                <div
+                  class="text-[10px] font-black uppercase tracking-[0.2em] text-maroon dark:text-gold mb-3 opacity-90"
+                >
+                  Student Portal
+                </div>
+                <h1
+                  class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter dark:text-white leading-tight mb-5"
+                >
+                  Welcome back,<br/><span id="sName" class="text-maroon dark:text-gold">Student</span>
+                </h1>
+                <div class="flex gap-3 flex-wrap">
+                   <div class="flex items-center gap-2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-white/40 dark:border-slate-700/50">
+                     <span class="material-symbols-rounded text-[14px] text-slate-500">alternate_email</span>
+                     <span
+                       class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                       id="sUser"
+                     >username</span>
+                   </div>
+                   <div class="flex items-center gap-2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-white/40 dark:border-slate-700/50">
+                     <span class="material-symbols-rounded text-[14px] text-slate-500">badge</span>
+                     <span
+                       class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                       id="sUserNum"
+                     >ID-00000</span>
+                   </div>
+                   <span
+                     id="sYear"
+                     class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white/60 dark:bg-slate-900/60 shadow-sm border border-white/40 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 flex items-center"
+                   >Yr -</span>
+                   <span
+                     id="sSection"
+                     class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white/60 dark:bg-slate-900/60 shadow-sm border border-white/40 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 flex items-center"
+                   >Sec -</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-4 z-10 w-full lg:w-auto mt-4 lg:mt-0">
+                <a
+                  href="scan.html"
+                  class="w-full lg:w-auto flex items-center justify-center gap-4 bg-maroon hover:bg-rose-900 text-white py-4 px-6 md:py-5 md:px-8 rounded-[24px] shadow-2xl shadow-maroon/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-maroon/30 active:translate-y-0 group border border-white/10"
+                >
+                  <span class="material-symbols-rounded text-3xl group-hover:scale-110 transition-transform duration-300">qr_code_scanner</span>
+                  <div class="text-left pr-2">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-white/60 mb-0.5">Quick Action</div>
+                    <div class="text-sm font-bold leading-none tracking-wide text-white">Scan QR</div>
+                  </div>
+                </a>
+              </div>
+           </div>
+        </div>
+        
+        <div id="smartScheduleContainer" class="mb-10 hidden"></div>
+
+        <!-- OFFLINE SYNC UI -->
+        <div id="offlineSyncBanner" class="hidden mb-10">
+          <div
+            class="card animate-fade bg-amber-50/80 border border-amber-300/50 dark:bg-amber-950/40 dark:border-amber-700/50 shadow-lg shadow-amber-500/5 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden backdrop-blur-md"
+          >
+            <div class="absolute -left-16 -top-16 w-32 h-32 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 w-full md:w-auto text-center md:text-left">
+              <h3
+                class="font-black text-amber-900 dark:text-amber-300 text-xl mb-2 flex items-center justify-center md:justify-start gap-2"
+              >
+                <span class="material-symbols-rounded">cloud_sync</span> Offline
+                Pending
+              </h3>
+              <p
+                class="text-sm text-amber-700 dark:text-amber-400 font-medium tracking-tight"
+              >
+                You have
+                <strong id="syncQueueCount" class="font-black text-lg bg-amber-200/50 dark:bg-amber-800/50 px-2 py-0.5 rounded-lg"
+                  >0</strong
+                >
+                pending offline attendance scans. They will automatically sync
+                when connection restores.
+              </p>
+            </div>
+            <div class="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto relative z-10">
+              <button
+                onclick="triggerSync()"
+                class="flex-1 md:flex-none bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-5 rounded-xl shadow-md transition-all hover:-translate-y-1 hover:shadow-amber-500/20 active:translate-y-0 w-full flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-rounded text-sm">sync</span> Sync
+                Now
+              </button>
+              <button
+                onclick="exportSyncBackup()"
+                class="flex-1 md:flex-none bg-white/60 dark:bg-slate-800/60 border border-amber-300/50 dark:border-amber-700/50 hover:bg-amber-100/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-400 font-bold py-3 px-5 rounded-xl transition-colors w-full flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-rounded text-sm">download</span>
+                Backup
+              </button>
+              <label
+                class="flex-1 md:flex-none cursor-pointer bg-white/60 dark:bg-slate-800/60 border border-amber-300/50 dark:border-amber-700/50 hover:bg-amber-100/50 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-400 font-bold py-3 px-5 rounded-xl transition-colors w-full flex items-center justify-center gap-2"
+                ><span class="material-symbols-rounded text-sm">upload</span>
+                Restore
+                <input
+                  type="file"
+                  class="hidden"
+                  accept=".json"
+                  onchange="
+                    if (this.files.length) importSyncBackup(this.files[0]);
+                  "
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="advisoryArea" class="hidden mb-10 space-y-4"></div>
+
+        <div id="onlineClassArea" class="hidden mb-10">
+          <div
+            class="card animate-fade bg-emerald-50/80 border border-emerald-200/50 dark:bg-emerald-950/40 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5 relative overflow-hidden backdrop-blur-md"
+          >
+            <div class="absolute -right-16 -top-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <h3
+              class="font-black text-emerald-900 dark:text-emerald-300 text-xl mb-3 flex items-center gap-3 relative z-10"
+            >
+              <span class="relative flex h-4 w-4">
+                <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                ></span>
+                <span
+                  class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500"
+                ></span>
+              </span>
+              Active Sessions
+            </h3>
+            <p
+              class="text-sm text-emerald-700 dark:text-emerald-400 mb-6 font-medium relative z-10"
+            >
+              Your instructors have opened online attendance. Check in below.
+            </p>
+            <div
+              id="onlineClassList"
+              class="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10"
+            ></div>
+          </div>
+        </div>
+
+        <div
+          id="badgesArea"
+          class="flex gap-4 mb-10 overflow-x-auto pb-4 hidden"
+        ></div>
+        <div id="announcementArea" class="mb-10 hidden">
+          <h3
+            class="font-black text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2"
+          >
+            <span class="material-symbols-rounded text-sm">campaign</span>
+            System Updates
+          </h3>
+          <div id="announcementList" class="space-y-4"></div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+           <div class="card glass animate-fade delay-100 border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 relative overflow-hidden group">
+              <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-colors"></div>
+              <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
+                  <span class="material-symbols-rounded text-lg">check_circle</span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest">Present</div>
+              </div>
+              <div class="text-4xl font-black text-slate-800 dark:text-white tracking-tighter relative z-10" id="countPresent">0</div>
+              <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase relative z-10">Sessions Attended</div>
+           </div>
+           
+           <div class="card glass animate-fade delay-200 border border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20 relative overflow-hidden group">
+              <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-colors"></div>
+              <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="p-2 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400">
+                  <span class="material-symbols-rounded text-lg">schedule</span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest">Late</div>
+              </div>
+              <div class="text-4xl font-black text-slate-800 dark:text-white tracking-tighter relative z-10" id="countLate">0</div>
+              <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase relative z-10">Tardy Logs</div>
+           </div>
+           
+           <div class="card glass animate-fade delay-300 border border-rose-500/20 bg-rose-50/50 dark:bg-rose-950/20 relative overflow-hidden group">
+              <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-colors"></div>
+              <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="p-2 bg-rose-500/10 rounded-xl text-rose-600 dark:text-rose-400">
+                  <span class="material-symbols-rounded text-lg">cancel</span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest">Absent</div>
+              </div>
+              <div class="text-4xl font-black text-slate-800 dark:text-white tracking-tighter relative z-10" id="countAbsent">0</div>
+              <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase relative z-10">Missed Sessions</div>
+           </div>
+           
+           <div class="card animate-fade delay-400 glass border border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-950/20 relative overflow-hidden group">
+              <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-colors pointer-events-none"></div>
+              <div class="flex items-center gap-3 mb-4 relative z-10">
+                <div class="p-2 bg-indigo-500/10 rounded-xl text-indigo-600 dark:text-indigo-400">
+                  <span class="material-symbols-rounded text-lg">workspace_premium</span>
+                </div>
+                <div class="text-[10px] text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest">Reliability</div>
+              </div>
+              <div class="text-4xl font-black text-slate-800 dark:text-white mt-1 tracking-tighter relative z-10" id="overallRate">0%</div>
+              <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase relative z-10">Attendance Score</div>
+           </div>
+        </div>
+
+        <div
+          class="flex justify-between items-center mb-8 glass bg-slate-50/80 dark:bg-slate-900/40 p-5 rounded-[28px] border border-slate-200 dark:border-slate-800"
+        >
+          <div
+            class="text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-3 ml-2"
+          >
+            <span class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+            </span>
+            Live Activity Status
+          </div>
+          <button
+            onclick="openExcuseModal()"
+            class="btn-secondary flex items-center gap-2 group shadow-sm bg-white dark:bg-slate-800 border-none px-6 py-3"
+          >
+            <span
+              class="material-symbols-rounded text-maroon dark:text-gold group-hover:rotate-12 transition-transform text-lg"
+              >history_edu</span
+            >
+            File Excuse Request
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <div
+            class="card lg:col-span-2 animate-fade delay-500 border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 glass custom-scrollbar relative overflow-hidden"
+          >
+            <div class="absolute -top-32 -right-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 relative z-10">
+              <h2
+                class="text-xl font-black dark:text-white flex items-center gap-3"
+              >
+                <span
+                  class="material-symbols-rounded text-indigo-600 p-2.5 bg-indigo-600/10 rounded-xl"
+                  >auto_graph</span
+                >
+                Academic Progress
+              </h2>
+              <div
+                class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"
+              >
+                Enrolled Subjects
+              </div>
+            </div>
+            <div id="courseList" class="space-y-4 relative z-10">
+              <div class="text-slate-400 text-center py-10 italic">
+                Compiling academic data...
+              </div>
+            </div>
+          </div>
+          <div class="lg:col-span-1 space-y-8">
+            <div
+              class="card animate-fade delay-500 border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 glass relative overflow-hidden"
+            >
+              <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <h2
+                class="text-xl font-black mb-6 dark:text-white flex items-center gap-3 relative z-10"
+              >
+                <span
+                  class="material-symbols-rounded text-blue-600 p-2.5 bg-blue-600/10 rounded-xl"
+                  >donut_small</span
+                >
+                Attendance Summary
+              </h2>
+              <div
+                class="h-64 relative bg-white/80 dark:bg-slate-800/80 rounded-[28px] p-4 border border-slate-100 dark:border-slate-700 shadow-sm z-10 backdrop-blur-md"
+              >
+                <canvas id="statusChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="card animate-fade delay-500 border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 glass relative overflow-hidden">
+              <div class="absolute -top-32 -left-32 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+              <div class="flex justify-between items-center mb-6 relative z-10">
+                 <h2 class="text-xl font-black dark:text-white flex items-center gap-3">
+                   <span class="material-symbols-rounded text-amber-600 p-2.5 bg-amber-600/10 rounded-xl">campaign</span>
+                   Notice Board
+                 </h2>
+              </div>
+              <div id="studentAnnouncementsList" class="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
+                 <div class="text-slate-400 text-center py-8 flex flex-col items-center gap-3">
+                    <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-2">
+                       <span class="material-symbols-rounded opacity-30 text-3xl">notifications_off</span>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">No New Notices</span>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12 animate-fade delay-500">
+          <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-6">
+            <h2 class="text-2xl font-black dark:text-white flex items-center gap-3">
+              <span class="material-symbols-rounded text-maroon dark:text-red-400 p-2.5 bg-maroon/10 dark:bg-maroon/20 rounded-xl">history</span>
+              Recent Attendance
+            </h2>
+            <div class="flex gap-2 bg-white/60 dark:bg-slate-900/60 glass backdrop-blur-md overflow-x-auto p-2 rounded-2xl border border-slate-200 dark:border-slate-700 w-full xl:w-auto custom-scrollbar" id="timelineFilters">
+              <button onclick="filterTimeline('ALL')" class="tl-btn active px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-maroon text-white shadow-md transition-all whitespace-nowrap">All</button>
+              <button onclick="filterTimeline('PRESENT')" class="tl-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-all whitespace-nowrap">Present</button>
+              <button onclick="filterTimeline('LATE')" class="tl-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-all whitespace-nowrap">Late</button>
+              <button onclick="filterTimeline('ABSENT')" class="tl-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-all whitespace-nowrap">Absent</button>
+              <button onclick="filterTimeline('EXCUSED')" class="tl-btn px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-white transition-all whitespace-nowrap">Excused</button>
+            </div>
+          </div>
+          <div class="card p-8 sm:p-10 overflow-hidden shadow-2xl shadow-slate-200/20 dark:shadow-none border border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 glass">
+             <div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent" id="timelineContainer">
+                <!-- Timeline items -->
+                <div class="text-center text-slate-400 font-bold py-10 relative z-10 bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800/50 backdrop-blur-md">Loading timeline...</div>
+             </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/schedule.js"></script>
+    <script src="js/attendance_rules.js"></script>
+    <script>
+      checkAuth();
+      const user = JSON.parse(localStorage.getItem("user"));
+      document.getElementById("sName").innerText = user.full_name || "Student";
+      document.getElementById("sUser").innerText = user.app_username || user.username;
+      document.getElementById("sUserNum").innerText =
+        user.role === "student"
+          ? user.username.includes("-")
+            ? user.username
+            : "ID-" + user.username
+          : user.role.toUpperCase();
+      document.getElementById("sYear").innerText = "Yr " + (user.year || "N/A");
+      document.getElementById("sSection").innerText =
+        "Sec " + (user.section || "N/A");
+
+      function openConfirm(title, msg) {
+        return new Promise((resolve) => {
+          document.getElementById("confirmTitle").innerText = title;
+          document.getElementById("confirmMessage").innerText = msg;
+          const modal = document.getElementById("confirmModal");
+          const cBtn = document.getElementById("confirmConfirmBtn");
+          const xBtn = document.getElementById("confirmCancelBtn");
+          const cleanup = (val) => {
+            modal.classList.add("hidden");
+            resolve(val);
+          };
+          cBtn.onclick = () => cleanup(true);
+          xBtn.onclick = () => cleanup(false);
+          modal.classList.remove("hidden");
+        });
+      }
+
+      const activeHeartbeats = {};
+      let currentPromptSessionId = null;
+
+      function getContinuityLabel(status) {
+        if (!status || status === "Stable")
+          return '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-955/35 dark:text-emerald-400">🟢 Connection Stable</span>';
+        if (status === "Temporarily Interrupted")
+          return '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-955/35 dark:text-amber-400">🟡 Connection Weak</span>';
+        if (status === "Reconnected")
+          return '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-teal-100 text-teal-700 dark:bg-teal-955/35 dark:text-teal-400">🟢 Reconnected</span>';
+        if (status === "Interrupted")
+          return '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-955/35 dark:text-rose-400">🔴 Offline / Interrupted</span>';
+        return "";
+      }
+
+      async function sendHeartbeatPing(sessionId) {
+        try {
+          const res = await sendSessionHeartbeat(sessionId);
+          if (res && res.success) {
+            // Live update the label on screen if matches
+            const label = document.getElementById(
+              `continuity-badge-${sessionId}`,
+            );
+            if (label)
+              label.innerHTML = getContinuityLabel(res.continuity_status);
+
+            if (res.prompt_reason) {
+              currentPromptSessionId = sessionId;
+              document.getElementById("interruptionReasonInput").value = "";
+              document.getElementById("reasonModal").classList.remove("hidden");
+            }
+          }
+        } catch (e) {
+          console.warn("Heartbeat dropped due to temporary interruption.", e);
+        }
+      }
+
+      function skipReason() {
+        document.getElementById("reasonModal").classList.add("hidden");
+        currentPromptSessionId = null;
+      }
+
+      async function submitReason() {
+        const noteEl = document.getElementById("interruptionReasonInput");
+        const note = noteEl.value.trim();
+        if (!note) return showToast("Type a reason first", "error");
+
+        if (currentPromptSessionId) {
+          try {
+            await updateInterruptionReason(currentPromptSessionId, note);
+            showToast("Reason submitted to professor!");
+          } catch (e) {}
+        }
+        document.getElementById("reasonModal").classList.add("hidden");
+        currentPromptSessionId = null;
+      }
+
+      async function onLaunchClassroom(sessionId, link) {
+        try {
+          await joinOnlineSession(sessionId);
+        } catch (e) {}
+        window.open(link, "_blank");
+      }
+
+      let _lastActiveSessionsStr = "";
+      async function checkActiveSessions() {
+        try {
+          const sessions = await fetchActiveSessions();
+          const area = document.getElementById("onlineClassArea");
+          const list = document.getElementById("onlineClassList");
+
+          const sessionsStr = JSON.stringify(sessions || []);
+          if (sessionsStr === _lastActiveSessionsStr) {
+            return;
+          }
+          _lastActiveSessionsStr = sessionsStr;
+
+          if (sessions && sessions.length > 0) {
+            area.classList.remove("hidden");
+            list.innerHTML = sessions
+              .map((s) => {
+                let modeLabel = "🎓 PHYSICAL";
+                let modeColor = "emerald";
+                if (s.mode === "ONLINE") {
+                  modeLabel = "🌐 ONLINE";
+                  modeColor = "blue";
+                }
+                if (s.mode === "HYBRID") {
+                  modeLabel = "🌓 HYBRID";
+                  modeColor = "amber";
+                }
+
+                const hasCheckedIn = s.log_id || !!s.attendance_status;
+                const userStatus = s.attendance_status;
+
+                let actionHtml = "";
+                if (!hasCheckedIn) {
+                  let pcBtn = "";
+                  let olBtn = "";
+                  if (s.mode === "PHYSICAL" || s.mode === "HYBRID") {
+                    pcBtn = `<a href="scan.html" class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-xs px-4 h-10 shadow-lg shadow-emerald-600/20 whitespace-nowrap"><span class="material-symbols-rounded text-sm">qr_code_scanner</span> Scan QR</a>`;
+                  }
+                  if (s.mode === "ONLINE" || s.mode === "HYBRID") {
+                    olBtn = `
+                <div class="flex items-center gap-2">
+                  <input type="text" id="code-input-${s.id}" placeholder="CODE" class="w-full sm:w-20 bg-slate-100 dark:bg-slate-900 border-none rounded-xl px-2 py-2 text-center font-black tracking-widest text-xs focus:ring-2 ring-blue-500/50 outline-none h-10 uppercase" maxlength="6">
+                  <button onclick="quickJoin(${s.id}, '${s.entry_code}', this)" class="btn-primary bg-blue-600 hover:bg-blue-700 text-xs px-4 h-10 shadow-lg shadow-blue-600/20 whitespace-nowrap">Join</button>
+                </div>
+              `;
+                  }
+                  actionHtml = `<div class="flex items-center gap-2 w-full sm:w-auto">${pcBtn} ${olBtn}</div>`;
+                } else {
+                  let classLaunchHtml = "";
+                  if (
+                    (s.mode === "ONLINE" || s.mode === "HYBRID") &&
+                    s.meeting_link
+                  ) {
+                    classLaunchHtml = `
+                <button onclick="onLaunchClassroom(${s.id}, '${s.meeting_link}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-500/10 flex items-center gap-1.5 transition-all">
+                  <span class="material-symbols-rounded text-sm">video_camera_front</span> Launch Classroom
+                </button>
+              `;
+                  }
+
+                  actionHtml = `
+              <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-end">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-xl">
+                  <span class="material-symbols-rounded text-sm">check_circle</span>
+                  <span class="text-[10px] font-black uppercase tracking-widest">Logged: ${userStatus}</span>
+                </div>
+                ${classLaunchHtml}
+              </div>
+            `;
+
+                  if (s.mode === "ONLINE" || s.mode === "HYBRID") {
+                    if (!activeHeartbeats[s.id]) {
+                      sendHeartbeatPing(s.id);
+                      activeHeartbeats[s.id] = setInterval(
+                        () => sendHeartbeatPing(s.id),
+                        30000,
+                      );
+                    }
+                  }
+                }
+
+                return `
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-slate-800 p-5 rounded-[24px] border dark:border-slate-700 shadow-xl gap-4 group transition-all hover:border-${modeColor}-500/30">
+              <div class="flex items-center gap-4 w-full">
+                <div class="w-12 h-12 rounded-2xl bg-${modeColor}-500/10 flex items-center justify-center text-${modeColor}-500">
+                  <span class="material-symbols-rounded">${s.mode === "ONLINE" ? "globe" : s.mode === "HYBRID" ? "wb_twilight" : "location_on"}</span>
+                </div>
+                <div>
+                  <div class="font-black text-slate-800 dark:text-white flex flex-wrap items-center gap-2">
+                    <span>${s.course_code}</span>
+                    ${hasCheckedIn && (s.mode === "ONLINE" || s.mode === "HYBRID") ? `<span id="continuity-badge-${s.id}">${getContinuityLabel(s.continuity_status)}</span>` : ""}
+                  </div>
+                  <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">${s.professor_name} • ${modeLabel}</div>
+                </div>
+              </div>
+              ${actionHtml}
+            </div>
+          `;
+              })
+              .join("");
+          } else {
+            area.classList.add("hidden");
+          }
+        } catch (e) {
+          console.error("Active sessions check failed", e);
+        }
+      }
+
+      async function quickJoin(sessionId, expectedCode, btn) {
+        if (btn.disabled || btn.dataset.loading) return;
+        const input = document.getElementById(`code-input-${sessionId}`);
+        const code = input.value.trim().toUpperCase();
+        if (!code) return showToast("Enter session code", "error");
+
+        btn.dataset.loading = "true";
+        btn.disabled = true;
+        const oldText = btn.innerHTML;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span>';
+
+        try {
+          const res = await postCodeAttendance(code);
+          if (res.success) {
+            showToast("Attendance logged successfully!");
+            loadData();
+          } else {
+            showToast(res.error || "Failed to log attendance", "error");
+          }
+        } catch (e) {
+          showToast("Verification failed", "error");
+        } finally {
+          btn.dataset.loading = "";
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
+      }
+
+      async function loadData() {
+        try {
+          let [logs, courses, excuses, ann, classAnn] = await Promise.all([
+            fetchAttendanceMe(),
+            fetchMyCourses(),
+            fetchExcuses(),
+            fetchAnnouncements(),
+            fetchStudentAnnouncements(),
+          ]);
+
+          if (logs.error) logs = [];
+          if (courses.error) courses = [];
+          if (excuses.error) excuses = [];
+          if (ann.error) ann = [];
+          if (classAnn.error) classAnn = [];
+
+          checkActiveSessions();
+          document.getElementById("ex_course").innerHTML = courses
+            .map((c) => `<option value="${c.code}">${c.code}</option>`)
+            .join("");
+
+          const present = logs.filter((l) => l.status === "PRESENT").length,
+            late = logs.filter((l) => l.status === "LATE").length,
+            absent = logs.filter((l) => l.status === "ABSENT").length,
+            total = present + late + absent,
+            rate =
+              total > 0
+                ? Math.round(((present + late * 0.5) / total) * 100)
+                : 0;
+          document.getElementById("countPresent").innerText = present;
+          document.getElementById("countLate").innerText = late;
+          document.getElementById("countAbsent").innerText = absent;
+          document.getElementById("overallRate").innerText = rate + "%";
+
+          if (window.statusChartInstance) {
+              window.statusChartInstance.destroy();
+          }
+
+          window.statusChartInstance = new Chart(document.getElementById("statusChart"), {
+            type: "doughnut",
+            data: {
+              labels: ["Present", "Late", "Absent"],
+              datasets: [
+                {
+                  data: [present, late, absent],
+                  backgroundColor: ["#10b981", "#f59e0b", "#f43f5e"],
+                  borderWidth: 0,
+                },
+              ],
+            },
+            options: {
+              plugins: { legend: { position: "bottom" } },
+              cutout: "70%",
+            },
+          });
+
+          if (ann.length > 0) {
+            document.getElementById("announcementList").innerHTML = ann
+              .map(
+                (a) =>
+                  `<div class="p-5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border ${a.type === "alert" ? "border-rose-500/30 shadow-rose-500/5 bg-rose-50/30 dark:bg-rose-950/20" : "border-blue-500/30 shadow-blue-500/5 bg-blue-50/30 dark:bg-blue-950/20"} shadow-lg relative overflow-hidden group">
+                     <span class="absolute -right-4 -top-4 w-16 h-16 rounded-full blur-xl ${a.type === 'alert' ? 'bg-rose-500/10' : 'bg-blue-500/10'} group-hover:scale-150 transition-transform"></span>
+                     <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-2">
+                           <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${a.type === 'alert' ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400' : 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400'} border ${a.type === 'alert' ? 'border-rose-200 dark:border-rose-800' : 'border-blue-200 dark:border-blue-800'}">System Notification</span>
+                        </div>
+                        <div class="font-black text-slate-800 dark:text-white text-lg tracking-tight leading-tight mb-2">${a.title}</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">${a.content}</div>
+                        <div class="text-[10px] uppercase font-bold text-slate-400 mt-4 flex justify-between tracking-widest bg-white/40 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                           <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">shield_person</span> ${a.created_by}</span>
+                           <span>${formatDate(a.timestamp)}</span>
+                        </div>
+                     </div>
+                  </div>`,
+              )
+              .join("");
+            document
+              .getElementById("announcementArea")
+              .classList.remove("hidden");
+          }
+          
+        if (classAnn.length > 0) {
+            document.getElementById("studentAnnouncementsList").innerHTML = classAnn
+              .map(a => `
+                <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-5 rounded-[20px] border border-slate-200/50 dark:border-slate-700/50 relative shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden">
+                  <div class="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-colors pointer-events-none"></div>
+                  ${a.is_pinned ? '<span class="absolute -top-1 -right-1 material-symbols-rounded text-lg text-amber-500 bg-amber-50 dark:bg-amber-900/50 rounded-full p-2 shadow-sm scale-75 outline outline-4 outline-white dark:outline-slate-800 z-10">keep</span>' : ''}
+                  <div class="flex items-center gap-2 mb-3 relative z-10">
+                     <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${a.type === 'Important' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50' : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'}">${a.course_code}</span>
+                     ${a.type !== 'General' ? `<span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 px-2 py-0.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">${a.type}</span>` : ''}
+                  </div>
+                  <h4 class="font-black text-slate-800 dark:text-white mb-2 leading-tight text-md tracking-tight relative z-10 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">${a.title}</h4>
+                  <p class="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed relative z-10 line-clamp-3 group-hover:line-clamp-none transition-all">${a.content}</p>
+                  <div class="mt-4 text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase flex justify-between relative z-10 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                     <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">school</span> ${a.created_by}</span>
+                     <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">schedule</span> ${formatDate(a.timestamp)}</span>
+                  </div>
+                </div>
+              `).join("");
+          }
+
+          const courseContainer = document.getElementById("courseList");
+          const advisoryContainer = document.getElementById("advisoryArea");
+          let advisoryHtml = '';
+          
+          if (courses.length === 0)
+            courseContainer.innerHTML =
+              '<div class="text-center py-10"><span class="material-symbols-rounded text-4xl opacity-30 mb-2">school</span><br/><span class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No enrolled courses</span></div>';
+          else {
+            courseContainer.innerHTML = courses
+              .map((c) => {
+                const cLogs = logs.filter((l) => l.course_code === c.code),
+                  cPres = cLogs.filter((l) => l.status === "PRESENT").length,
+                  cTot = cLogs.length,
+                  cRate = cTot > 0 ? Math.round((cPres / cTot) * 100) : 0;
+                  
+                const standing = calculateAttendanceStanding(cLogs);
+                if (standing.level >= 1) {
+                  const isExceeded = standing.level === 3;
+                  advisoryHtml += `
+                    <div class="card bg-${isExceeded ? 'rose' : 'orange'}-50 border-${isExceeded ? 'rose' : 'orange'}-200 dark:bg-${isExceeded ? 'rose' : 'amber'}-950/20 dark:border-${isExceeded ? 'rose' : 'amber'}-800 border-l-[6px] border-l-${isExceeded ? 'rose' : 'orange'}-500 shadow-md p-4 flex gap-4 items-start">
+                      <span class="material-symbols-rounded text-${isExceeded ? 'rose' : 'orange'}-500 text-2xl mt-1">${isExceeded ? 'error' : 'warning'}</span>
+                      <div>
+                        <h4 class="font-bold text-${isExceeded ? 'rose' : 'orange'}-900 dark:text-${isExceeded ? 'rose' : 'amber'}-300 mb-1">${isExceeded ? 'Recommended for Attendance Review' : 'Attendance Advisory'}</h4>
+                        <p class="text-sm text-${isExceeded ? 'rose' : 'orange'}-700 dark:text-${isExceeded ? 'rose' : 'amber'}-400">
+                          ${isExceeded 
+                            ? `You have exceeded the attendance threshold for <strong>${c.code}</strong>. Please consult your instructor. Faculty discretion applies.` 
+                            : `You are approaching the attendance threshold for <strong>${c.code}</strong>.<br/>Equivalent Absences: ${standing.equivalentAbsences} / ${standing.limit}. Please monitor your attendance.`}
+                        </p>
+                      </div>
+                    </div>
+                  `;
+                }
+                
+                const standingHTML = renderStandingBadge(standing);
+                
+                return `
+            <div class="group relative overflow-hidden rounded-[24px] transition-all duration-500 hover:shadow-xl hover:shadow-maroon/10 border border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+              <div class="absolute -right-12 -top-12 w-32 h-32 bg-maroon/5 dark:bg-gold/5 rounded-full blur-2xl group-hover:bg-maroon/10 dark:group-hover:bg-gold/10 transition-colors pointer-events-none"></div>
+              <div class="p-6 flex flex-col sm:flex-row items-center gap-6 relative z-10">
+                <div class="relative flex-shrink-0">
+                  <svg class="w-20 h-20 transform -rotate-90 drop-shadow-sm">
+                    <circle cx="40" cy="40" r="36" fill="transparent" stroke="currentColor" stroke-width="6" class="text-slate-200/50 dark:text-slate-800" />
+                    <circle cx="40" cy="40" r="36" fill="transparent" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="${226 - (226 * cRate) / 100}" class="text-maroon dark:text-gold transition-all duration-1000" />
+                  </svg>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                     <span class="text-sm font-black dark:text-white">${cRate}%</span>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0 text-center sm:text-left">
+                  <div class="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-3 mb-3">
+                    <h4 class="font-black dark:text-white text-lg tracking-tight leading-tight">${c.code} <div class="text-slate-500 dark:text-slate-400 font-bold text-[12px] uppercase mt-1 tracking-widest leading-normal">${c.name}</div></h4>
+                    <span class="px-3 py-1.5 bg-white/60 dark:bg-slate-800/60 shadow-sm border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest whitespace-nowrap">${cPres} / ${cTot} Sessions</span>
+                  </div>
+                  <div class="w-full bg-slate-200/50 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mb-4 shadow-inner">
+                    <div class="bg-gradient-to-r from-maroon to-rose-600 dark:from-gold dark:to-yellow-500 h-full rounded-full transition-all duration-1000" style="width: ${cRate}%"></div>
+                  </div>
+                  <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                      <a href="student-profile.html?username=${user.username}" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-maroon dark:hover:text-gold transition-colors flex items-center gap-1.5 bg-white/50 dark:bg-slate-800/50 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-700/50"><span class="material-symbols-rounded text-[14px]">person_search</span> Profile</a>
+                      <span class="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest flex items-center gap-1.5 bg-amber-50/50 dark:bg-amber-900/20 px-2.5 py-1 rounded-lg border border-amber-200/50 dark:border-amber-800/50" title="Remaining Late Allowance before it converts into 1 Equivalent Absence">
+                        <span class="material-symbols-rounded text-[14px]">schedule</span> ${Math.max(0, 3 - standing.remainingLates)} Lates left
+                      </span>
+                    </div>
+                    <div>
+                      ${standingHTML}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+              })
+              .join("");
+          }
+          
+          if (advisoryHtml) {
+            advisoryContainer.innerHTML = `
+              <h3 class="font-black text-rose-600 dark:text-rose-400 text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span class="material-symbols-rounded text-sm">assignment_late</span>
+                Attendance Advisories
+              </h3>
+              ${advisoryHtml}
+            `;
+            advisoryContainer.classList.remove('hidden');
+          }
+
+          window.allLogs = logs;
+          renderTimeline('ALL');
+        } catch (e) {
+          console.error(e);
+          document.getElementById("courseList").innerHTML =
+            '<div class="text-rose-500 text-center py-10 font-bold">Failed to load academic data.</div>';
+          document.getElementById("timelineContainer").innerHTML =
+            '<div class="text-center text-rose-500 font-bold py-10">Failed to load timeline.</div>';
+          if(document.getElementById("ex_course")) document.getElementById("ex_course").innerHTML =
+            "<option>Error loading courses</option>";
+        }
+      }
+
+      function friendlyDate(dStr) {
+         const d = new Date(dStr);
+         const now = new Date();
+         const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+         if (diff === 0 && now.getDate() === d.getDate()) return "Today";
+         if (diff === 1 || (diff === 0 && now.getDate() !== d.getDate())) return "Yesterday";
+         return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      }
+
+      function renderTimeline(filter) {
+         let filtered = window.allLogs || [];
+         if (filter !== 'ALL') {
+             filtered = filtered.filter(l => l.status.toUpperCase() === filter);
+         }
+         
+         const tc = document.getElementById("timelineContainer");
+         if (!filtered.length) {
+             tc.innerHTML = `<div class="text-center text-slate-400 font-bold py-10 relative z-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/50 dark:border-slate-800/50 flex flex-col items-center justify-center gap-3"><span class="material-symbols-rounded text-4xl opacity-30">history_toggle_off</span> No activity logged for this filter.</div>`;
+             return;
+         }
+
+         tc.innerHTML = filtered.slice(0, 15).map((l, index) => {
+             let color = 'slate';
+             let icon = 'history';
+             if (l.status === 'PRESENT') { color = 'emerald'; icon = 'check_circle'; }
+             else if (l.status === 'LATE') { color = 'amber'; icon = 'schedule'; }
+             else if (l.status === 'ABSENT') { color = 'rose'; icon = 'cancel'; }
+             else if (l.status === 'EXCUSED') { color = 'blue'; icon = 'assignment_turned_in'; }
+             
+             let justifyClass = index % 2 !== 0 ? 'justify-start md:justify-start' : 'justify-start md:justify-end';
+
+             return `
+               <div class="relative z-10 animate-fade group/timeline">
+                 <span class="w-10 h-10 rounded-full bg-${color}-500/10 text-${color}-600 dark:text-${color}-400 flex items-center justify-center absolute left-0 top-1 -ml-5 md:ml-0 md:left-1/2 md:-translate-x-1/2 outline outline-[6px] outline-white dark:outline-slate-900 shadow-sm transition-transform duration-300 group-hover/timeline:scale-110 group-hover/timeline:bg-${color}-500 text-white backdrop-blur-md">
+                    <span class="material-symbols-rounded text-[18px] group-hover/timeline:text-white transition-colors text-${color}-500">${icon}</span>
+                 </span>
+                 <div class="pl-10 md:pl-0 md:w-1/2 md:pr-14 md:text-right ${index % 2 !== 0 ? 'md:ml-auto md:pl-14 md:pr-0 md:text-left' : ''}">
+                    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-5 sm:p-6 rounded-[24px] shadow-sm border border-slate-200/50 dark:border-slate-700/50 hover:shadow-xl hover:shadow-${color}-500/10 hover:border-${color}-300 dark:hover:border-${color}-700/50 transition-all duration-300 group relative overflow-hidden">
+                       <div class="absolute -top-4 -right-4 w-32 h-32 bg-${color}-500/5 rounded-full blur-2xl group-hover:bg-${color}-500/10 transition-colors pointer-events-none"></div>
+                       <h4 class="font-black text-slate-800 dark:text-white flex flex-wrap items-center gap-2 ${justifyClass} relative z-10">
+                         ${l.course_code || 'General Activity'}
+                         <span class="px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-widest font-black bg-${color}-50 dark:bg-${color}-500/10 text-${color}-600 dark:text-${color}-400 border border-${color}-200/50 dark:border-${color}-800/50 shadow-sm">${l.status}</span>
+                       </h4>
+                       <p class="text-[11px] font-bold tracking-tight text-slate-500 dark:text-slate-400 mt-3 flex items-center gap-1.5 ${justifyClass} relative z-10"><span class="material-symbols-rounded text-[14px] opacity-70">schedule</span> ${friendlyDate(l.timestamp)} &middot; ${formatTime(l.timestamp)}</p>
+                    </div>
+                 </div>
+               </div>
+             `;
+         }).join('');
+      }
+
+      function filterTimeline(filter) {
+         document.querySelectorAll('.tl-btn').forEach(b => {
+             b.classList.remove('bg-maroon', 'text-white', 'shadow-md', 'active');
+             b.classList.add('text-slate-500');
+             if (b.innerText.toUpperCase() === filter) {
+                 b.classList.add('bg-maroon', 'text-white', 'shadow-md', 'active');
+                 b.classList.remove('text-slate-500');
+             }
+         });
+         renderTimeline(filter);
+      }
+
+      function openExcuseModal() {
+        document.getElementById("excuseModal").classList.remove("hidden");
+      }
+      async function submitExcuse() {
+        const btn = document.querySelector("#excuseModal .btn-primary");
+        if (btn.disabled) return;
+        const oldText = btn.innerHTML;
+        const c = document.getElementById("ex_course").value,
+          d = document.getElementById("ex_date").value,
+          r = document.getElementById("ex_reason").value;
+        if (!c || !d || !r) return showToast("Please fill all fields", "error");
+
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin">progress_activity</span>';
+
+        try {
+          const res = await createExcuse({
+            course_code: c,
+            date: d,
+            reason: r,
+          });
+          if (res.success) {
+            showToast("Request submitted");
+            document.getElementById("excuseModal").classList.add("hidden");
+            loadData();
+          } else showToast(res.error || "Error submitting", "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
+      }
+      function downloadQR() {
+        const img = document.querySelector("#qrcode img");
+        if (img) {
+          const link = document.createElement("a");
+          link.href = img.src;
+          link.download = `QR-${user.username}.png`;
+          link.click();
+        }
+      }
+
+      window.updateSyncUI = function () {
+        const q = getPendingSyncs();
+        const syncBanner = document.getElementById("offlineSyncBanner");
+        const syncCount = document.getElementById("syncQueueCount");
+        if (syncBanner && syncCount) {
+          if (q.length > 0) {
+            syncBanner.classList.remove("hidden");
+            syncCount.innerText = q.length;
+          } else {
+            syncBanner.classList.add("hidden");
+          }
+        }
+      };
+
+      loadData();
+      loadSmartSchedule();
+      updateSyncUI();
+
+      let checkSessionsInterval = null;
+      function startSessionCheck() {
+        if (checkSessionsInterval) clearInterval(checkSessionsInterval);
+        checkActiveSessions();
+        checkSessionsInterval = setInterval(checkActiveSessions, 5000); // Check every 5s instead of 2s to reduce load
+      }
+
+      startSessionCheck();
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          // Force immediate heartbeats for all active sessions to recover from background sleep
+          Object.keys(activeHeartbeats).forEach((sessionId) =>
+            sendHeartbeatPing(sessionId),
+          );
+          startSessionCheck();
+          loadData(); // refresh full list as well
+        }
+      });
+    </script>
+  </body>
+</html>

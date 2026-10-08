@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Calendar — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-2 sm:p-8 lg:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden"
+      >
+        <div
+          class="flex flex-col lg:flex-row justify-between items-center mb-6 sm:mb-12 gap-4"
+        >
+          <div class="flex items-center gap-3 sm:gap-6 w-full lg:w-auto">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            >
+              <span class="material-symbols-rounded" style="font-size: 2em"
+                >menu</span
+              >
+            </button>
+            <div
+              class="h-10 sm:h-14 w-1.5 sm:w-2 bg-maroon dark:bg-gold rounded-full"
+            ></div>
+            <div>
+              <h1
+                class="text-xl sm:text-4xl font-black tracking-tighter dark:text-white leading-none"
+              >
+                Activity Matrix
+              </h1>
+              <p
+                class="text-[10px] sm:text-base text-slate-500 font-medium mt-1"
+              >
+                Chronological Attendance Distribution
+              </p>
+            </div>
+          </div>
+          <div
+            class="flex items-center gap-2 sm:gap-4 w-full lg:w-auto justify-between lg:justify-start"
+          >
+            <button
+              onclick="toggleTheme()"
+              class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-maroon transition-all"
+            >
+              <span class="material-symbols-rounded" style="font-size: 24px"
+                >contrast</span
+              >
+            </button>
+            <div
+              class="flex items-center gap-2 sm:gap-6 bg-white dark:bg-slate-800 p-1 sm:p-2 rounded-xl sm:rounded-3xl shadow-xl border dark:border-slate-700 flex-1 lg:flex-none justify-between lg:justify-start"
+            >
+              <button
+                onclick="changeMonth(-1)"
+                class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-slate-50 dark:bg-slate-900 hover:bg-maroon hover:text-white transition-all flex items-center justify-center shadow-inner"
+              >
+                <span class="material-symbols-rounded text-sm sm:text-base"
+                  >chevron_left</span
+                >
+              </button>
+              <h2
+                id="monthLabel"
+                class="text-[10px] sm:text-lg font-black uppercase tracking-widest w-auto sm:w-48 text-center dark:text-white leading-none"
+              >
+                Month Year
+              </h2>
+              <button
+                onclick="changeMonth(1)"
+                class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-slate-50 dark:bg-slate-900 hover:bg-maroon hover:text-white transition-all flex items-center justify-center shadow-inner"
+              >
+                <span class="material-symbols-rounded text-sm sm:text-base"
+                  >chevron_right</span
+                >
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="card p-2 sm:p-8 shadow-2xl border-none animate-fade delay-100"
+        >
+          <div
+            class="grid grid-cols-7 gap-1 sm:gap-6 mb-3 sm:mb-8 text-center px-1"
+          >
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Sun
+            </div>
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Mon
+            </div>
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Tue
+            </div>
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Wed
+            </div>
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Thu
+            </div>
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Fri
+            </div>
+            <div
+              class="text-[8px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter sm:tracking-widest"
+            >
+              Sat
+            </div>
+          </div>
+          <div id="calendarGrid" class="grid grid-cols-7 gap-1 sm:gap-6"></div>
+        </div>
+
+        <div class="mt-8 sm:mt-16 animate-fade delay-200">
+          <h3
+            class="text-xl sm:text-2xl font-black mb-6 sm:mb-8 dark:text-white flex items-center gap-3"
+          >
+            <span
+              class="material-symbols-rounded text-maroon dark:text-red-400 p-2 bg-maroon/5 dark:bg-maroon/20 rounded-xl"
+              >schedule</span
+            >
+            Course Schedule
+          </h3>
+          <div
+            id="scheduleGrid"
+            class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8"
+          >
+            <div class="col-span-full text-center py-10 text-slate-400 italic">
+              Fetching schedule matrix...
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 sm:mt-16 animate-fade delay-300">
+          <h3
+            id="drillDownAnchor"
+            class="text-xl sm:text-2xl font-black mb-4 sm:mb-8 dark:text-white flex items-center gap-3"
+          >
+            <span
+              class="material-symbols-rounded text-indigo-600 p-2 bg-indigo-600/5 rounded-xl"
+              >event_note</span
+            >
+            Daily Drill-down
+          </h3>
+          <div class="card p-0 sm:p-0 overflow-hidden shadow-2xl border-none">
+            <div class="table-container bg-transparent rounded-none block">
+              <table class="w-full text-left hidden sm:table">
+                <thead class="bg-slate-50 dark:bg-slate-900 shadow-sm">
+                  <tr
+                    class="font-black text-[10px] uppercase tracking-widest text-slate-500"
+                  >
+                    <th class="p-5">Clock Time</th>
+                    <th class="p-5">Entity</th>
+                    <th class="p-5">Subject</th>
+                    <th class="p-5 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="dayTable"
+                  class="text-sm dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-800"
+                >
+                  <tr>
+                    <td
+                      colspan="4"
+                      class="p-10 text-center text-slate-400 italic"
+                    >
+                      Select a date with indicators to view log details.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- Mobile List Alternative -->
+              <div
+                id="dayListMobile"
+                class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800"
+              >
+                <div class="p-8 text-center text-slate-400 text-xs italic">
+                  Select a date with indicators to view log details.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/schedule.js"></script>
+    <script>
+      checkAuth();
+      let currentDate = new Date(),
+        allLogs = [],
+        allCoursesForCalendar = [];
+      async function init() {
+        const user = JSON.parse(localStorage.getItem("user"));
+        let [logs, courses] = await Promise.all([
+          user.role === "student" ? fetchAttendanceMe() : fetchAttendance(),
+          user.role === "student" ? fetchMyCourses() : fetchCourses(),
+        ]);
+        if (logs.error) logs = [];
+        if (courses.error) courses = [];
+        allLogs = logs;
+        allCoursesForCalendar = courses;
+        renderCalendar();
+        renderSchedule(courses);
+      }
+
+      function renderSchedule(courses) {
+        const grid = document.getElementById("scheduleGrid");
+        if (!courses.length) {
+          grid.innerHTML =
+            '<div class="col-span-full text-center py-10 text-slate-400 italic">No courses enrolled.</div>';
+          return;
+        }
+        grid.innerHTML = courses
+          .map(
+            (c) => `
+    <div class="card p-4 sm:p-6 bg-white dark:bg-slate-800 shadow-xl border dark:border-slate-700 flex flex-col justify-between group hover:shadow-maroon/5 transition-all">
+      <div>
+        <div class="flex justify-between items-start mb-3 sm:mb-4">
+          <div class="bg-indigo-600 text-white px-2 sm:px-3 py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20">${c.code}</div>
+          <span class="material-symbols-rounded text-slate-300 group-hover:text-gold transition-colors text-sm sm:text-base">verified_user</span>
+        </div>
+        <h4 class="font-black text-base sm:text-lg tracking-tight mb-1 dark:text-white leading-tight">${c.name}</h4>
+        <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs mt-2 sm:mt-3">
+          <span class="material-symbols-rounded text-base">schedule</span>
+          <span class="font-bold">${c.schedule || "No schedule set"}</span>
+        </div>
+      </div>
+      <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400">
+            <span class="material-symbols-rounded text-xs sm:text-sm">person</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400">Instructor</span>
+            <span class="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-200">${c.assigned_faculty || "Unassigned"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      function changeMonth(delta) {
+        currentDate.setMonth(currentDate.getMonth() + delta);
+        renderCalendar();
+      }
+      function renderCalendar() {
+        const y = currentDate.getFullYear(),
+          m = currentDate.getMonth();
+        document.getElementById("monthLabel").innerText = new Date(
+          y,
+          m,
+        ).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+        const firstDay = new Date(y, m, 1).getDay(),
+          daysInMonth = new Date(y, m + 1, 0).getDate(),
+          grid = document.getElementById("calendarGrid");
+        grid.innerHTML = "";
+        for (let i = 0; i < firstDay; i++)
+          grid.innerHTML += `<div class="h-16 sm:h-24 rounded-xl sm:rounded-[28px] bg-slate-50/50 dark:bg-slate-800/10 active:scale-95 transition-all"></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          const currentDayOfWeek = new Date(y, m, d).getDay();
+          const dayLogs = allLogs.filter((l) =>
+            l.timestamp.startsWith(dateStr),
+          );
+          const count = dayLogs.length;
+          
+          const scheduledCourses = allCoursesForCalendar.filter(c => {
+             if (typeof parseSchedule === 'function') {
+                 const sched = parseSchedule(c.schedule);
+                 return sched && sched.activeDays.includes(currentDayOfWeek);
+             }
+             return false;
+          });
+          
+          let scheduleDotsHtml = "";
+          if (scheduledCourses.length > 0) {
+              scheduleDotsHtml = `<div class="mt-0.5 flex flex-wrap gap-1 sm:gap-1 justify-center px-1 opacity-60" title="Scheduled Classes">${scheduledCourses.map(() => `<span class="w-1 h-1 rounded-full bg-indigo-400"></span>`).join("")}</div>`;
+          }
+
+          let dots =
+            count > 0
+              ? `<div class="mt-1.5 sm:mt-2 flex flex-wrap gap-1 sm:gap-1 justify-center px-1">${dayLogs
+                  .slice(0, 5)
+                  .map(
+                    (l) =>
+                      `<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${l.status === "LATE" ? "bg-amber-400" : l.status === "ABSENT" || l.status === "FLAGGED" ? "bg-rose-400" : "bg-emerald-400"}"></span>`,
+                  )
+                  .join(
+                    "",
+                  )}${count > 5 ? `<span class="text-[8px] sm:text-[10px] text-slate-400 font-black">+${count - 5}</span>` : ""}</div>`
+              : "";
+              
+          grid.innerHTML += `<div onclick="showDay('${dateStr}')" class="card h-16 sm:h-24 rounded-xl sm:rounded-[28px] border border-slate-200 dark:border-slate-700 hover:border-maroon dark:hover:border-gold cursor-pointer p-1 sm:p-2 flex flex-col items-center justify-center sm:justify-start transition-all bg-white dark:bg-slate-800 shadow-sm active:scale-95 relative"><span class="text-sm sm:text-base font-black ${new Date().toDateString() === new Date(y, m, d).toDateString() ? "text-maroon dark:text-gold" : ""} leading-none">${d}</span>${dots}${scheduleDotsHtml}</div>`;
+        }
+      }
+      function showDay(dateStr) {
+        const logs = allLogs.filter((l) => l.timestamp.startsWith(dateStr));
+        const tbody = document.getElementById("dayTable");
+        const listMob = document.getElementById("dayListMobile");
+
+        if (logs.length) {
+          tbody.innerHTML = logs
+            .map(
+              (r) =>
+                `<tr class="transition-colors hover:shadow-sm"><td class="p-4 font-mono text-xs">${formatTime(r.timestamp)}</td><td class="p-4 font-bold text-sm">${r.student_name || r.student_username || "Me"}</td><td class="p-4"><span class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-bold uppercase tracking-widest opacity-80">${r.course_code}</span></td><td class="p-4 text-center">${window.getStatusBadge(r.status, JSON.stringify(r))}</td></tr>`,
+            )
+            .join("");
+          listMob.innerHTML = logs
+            .map(
+              (r) => `
+      <div class="p-6 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+           <div class="flex flex-col">
+              <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">${formatTime(r.timestamp)}</span>
+              <span class="text-sm font-black dark:text-white">${r.student_name || r.student_username || "Me"}</span>
+              <span class="text-[10px] mt-1 font-bold text-slate-500 uppercase tracking-wider">${r.course_code}</span>
+           </div>
+        </div>
+        <div class="shrink-0 scale-90 origin-right">
+           ${window.getStatusBadge(r.status, JSON.stringify(r))}
+        </div>
+      </div>
+    `,
+            )
+            .join("");
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">event_busy</span><span class="tracking-widest uppercase text-[10px]">No Records Found</span></div></td></tr>`;
+          listMob.innerHTML = `<div class="p-12 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">event_busy</span><span class="tracking-widest uppercase text-[10px]">No Records Found</span></div></div>`;
+        }
+        
+        if (window.innerWidth < 1024) {
+           const anchor = document.getElementById("drillDownAnchor");
+           if (anchor) {
+               // Give the DOM a tiny bit of time to layout before scrolling
+               setTimeout(() => {
+                   anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+               }, 50);
+           }
+        }
+      }
+      init();
+    </script>
+  </body>
+</html>

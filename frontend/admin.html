@@ -1,0 +1,1940 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Admin Portal — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+    <div
+      id="importModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-50 transition-opacity"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden animate-fade relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="bg-transparent px-8 py-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800/50 relative z-10">
+          <h3 class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3 w-full">
+            <span class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+               <span class="material-symbols-rounded">file_upload</span>
+            </span>
+            Bulk Import CSV
+          </h3>
+          <button
+            onclick="closeModal('importModal')"
+            class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div class="p-6 sm:p-8 relative z-10">
+          <p
+            class="text-sm font-bold text-slate-500 dark:text-slate-400 mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/50 dark:border-slate-700/50"
+          >
+            Format:
+            <code
+              class="font-mono font-black text-indigo-600 dark:text-indigo-400 ml-2"
+              >username, fullname (Role defaults to student)</code
+            ><br/>
+            <span class="text-[10px] mt-1 block">Full format also supported: username,password,role,fullname</span>
+          </p>
+          <textarea
+            id="importText"
+            class="input h-40 font-mono text-sm mb-6 bg-slate-50 dark:bg-slate-900/50 resize-none"
+            placeholder="stu1,pass123,student,John Doe&#10;prof1,pass456,professor,Dr. Smith"
+          ></textarea>
+          <div class="flex justify-end gap-3">
+             <button
+              onclick="processImport()"
+              class="w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400"
+            >
+              Import Records
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      id="userModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-50 transition-opacity"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden animate-fade relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="bg-transparent px-8 py-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800/50 relative z-10">
+          <h3 id="userModalTitle" class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3 w-full">
+            <span class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+               <span class="material-symbols-rounded">person_add</span>
+            </span>
+            Add New User
+          </h3>
+          <button
+            onclick="closeModal('userModal')"
+            class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div
+          class="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar relative z-10"
+        >
+          <input type="hidden" id="u_id" />
+          <div class="grid grid-cols-2 gap-6">
+            <div class="col-span-2">
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Full Name</label
+              >
+              <input
+                id="u_name"
+                class="input bg-slate-50 dark:bg-slate-900/50"
+                placeholder="e.g. Juan Dela Cruz"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >ID Number (Original)</label
+              >
+              <input
+                id="u_user"
+                class="input font-mono bg-slate-50 dark:bg-slate-900/50"
+                placeholder="e.g. 2023-00123"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Profile Username</label
+              >
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-bold">@</span>
+                <input
+                  id="u_app_usr"
+                  class="input pl-10 font-mono lowercase bg-slate-50 dark:bg-slate-900/50"
+                  placeholder="e.g. juan.delacruz"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Role</label
+              >
+              <select
+                id="u_role"
+                class="input appearance-none bg-slate-50 dark:bg-slate-900/50"
+                onchange="toggleStudentFields()"
+              >
+                <option value="student">Student Account</option>
+                <option value="professor">Professor Account</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
+          </div>
+          
+          <div id="profFields" class="hidden mb-6 bg-amber-50 dark:bg-amber-900/10 p-5 rounded-2xl border border-dashed border-amber-200 dark:border-amber-800">
+            <div>
+              <label class="block text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-2">Faculty Code / Number (Immutable)</label>
+              <input id="u_faculty_code" class="input font-mono uppercase bg-white dark:bg-slate-900" placeholder="e.g. P-1029" />
+              <p class="text-[9px] text-amber-500/70 mt-2 uppercase tracking-wider font-bold">Leave blank to auto-generate (e.g. P-XXXX)</p>
+            </div>
+          </div>
+
+          <div
+            id="studentFields"
+            class="grid grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700"
+          >
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Year Level</label
+              >
+              <input id="u_year" class="input bg-white dark:bg-slate-900/50" placeholder="e.g. 4" />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Class Section</label
+              >
+              <input
+                id="u_section_num"
+                class="input bg-white dark:bg-slate-900/50"
+                placeholder="e.g. BSIT 4-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Security Password</label
+            >
+            <input
+              id="u_pass"
+              type="password"
+              class="input bg-slate-50 dark:bg-slate-900/50"
+              placeholder="••••••••"
+            />
+          </div>
+        </div>
+        <div
+          class="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/20 flex justify-end gap-3 border-t border-slate-200/50 dark:border-slate-800/50 relative z-10 backdrop-blur-sm"
+        >
+          <button
+            onclick="closeModal('userModal')"
+            class="px-6 py-3 text-slate-500 font-bold hover:text-slate-800 dark:hover:text-slate-300 transition-colors uppercase text-xs tracking-widest"
+          >
+            Cancel
+          </button>
+          <button id="btnSaveUser" onclick="saveUser()" class="px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400">
+            Verify & Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="courseModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-50 transition-opacity"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden animate-fade relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div
+          class="bg-transparent px-8 py-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800/50 relative z-10"
+        >
+          <h3 id="courseModalTitle" class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3 w-full">
+            <span class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+               <span class="material-symbols-rounded">class</span>
+            </span>
+            Add Course
+          </h3>
+          <button
+            onclick="closeModal('courseModal')"
+            class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div
+          class="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar relative z-10"
+        >
+          <input type="hidden" id="c_id" />
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Course Code</label
+              >
+              <input
+                id="c_code"
+                class="input font-mono bg-slate-50 dark:bg-slate-900/50"
+                placeholder="e.g. COMP 015"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Course Designation</label
+              >
+              <input
+                id="c_name"
+                class="input bg-slate-50 dark:bg-slate-900/50"
+                placeholder="e.g. Web Development"
+              />
+            </div>
+            <div class="col-span-2">
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Assigned Faculty / Professor</label
+              >
+              <input
+                id="c_faculty"
+                class="input bg-slate-50 dark:bg-slate-900/50"
+                placeholder="e.g. Prof. Jefferson Costales"
+              />
+            </div>
+            <div class="col-span-2">
+              <label
+                class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+                >Class Schedule</label
+              >
+              <input
+                id="c_sched"
+                class="input bg-slate-50 dark:bg-slate-900/50"
+                placeholder="e.g. M/W/F 08:30AM-10:00AM"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/20 flex justify-end gap-3 border-t border-slate-200/50 dark:border-slate-800/50 relative z-10 backdrop-blur-sm"
+        >
+          <button
+            onclick="closeModal('courseModal')"
+            class="px-6 py-3 text-slate-500 font-bold hover:text-slate-800 dark:hover:text-slate-300 transition-colors uppercase text-xs tracking-widest"
+          >
+            Cancel
+          </button>
+          <button
+            id="btnSaveCourse"
+            onclick="saveCourse()"
+            class="px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg shadow-purple-500/30 transition-all active:scale-95 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400"
+          >
+            Save Course
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="roomModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-50 transition-opacity"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="bg-transparent px-8 py-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800/50 relative z-10">
+          <h3 id="roomModalTitle" class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3 w-full">
+            <span class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+               <span class="material-symbols-rounded">door_front</span>
+            </span>
+            Add Room
+          </h3>
+          <button
+            onclick="closeModal('roomModal')"
+            class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div class="p-6 sm:p-8 space-y-6 relative z-10">
+          <input type="hidden" id="r_id" />
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Room Name / ID</label
+            >
+            <input id="r_name" class="input bg-slate-50 dark:bg-slate-900/50" placeholder="e.g. Room 101" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Type</label
+            >
+            <select id="r_type" class="input bg-slate-50 dark:bg-slate-900/50 appearance-none">
+              <option>Lecture Hall</option>
+              <option>Computer Lab</option>
+              <option>Classroom</option>
+              <option>Audio-Visual Room</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Capacity</label
+            >
+            <input
+              id="r_cap"
+              type="number"
+              class="input bg-slate-50 dark:bg-slate-900/50"
+              placeholder="e.g. 40"
+            />
+          </div>
+        </div>
+        <div
+          class="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/20 flex justify-end gap-3 border-t border-slate-200/50 dark:border-slate-800/50 relative z-10 backdrop-blur-sm"
+        >
+          <button
+            onclick="closeModal('roomModal')"
+            class="px-6 py-3 text-slate-500 font-bold hover:text-slate-800 dark:hover:text-slate-300 transition-colors uppercase text-xs tracking-widest"
+          >
+            Cancel
+          </button>
+          <button
+            id="btnSaveRoom"
+            onclick="saveRoom()"
+            class="px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg shadow-amber-500/30 transition-all active:scale-95 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400"
+          >
+            Save Room
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="confirmModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-[60] p-4 transition-opacity"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-fade relative"
+      >
+        <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none z-0"></div>
+        <div class="p-8 text-center relative z-10">
+          <div
+            class="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner"
+          >
+            <span class="material-symbols-rounded" style="font-size: 40px"
+              >warning</span
+            >
+          </div>
+          <h3 id="confirmTitle" class="font-black text-2xl tracking-tight mb-2 text-slate-800 dark:text-white">
+            Confirm Action
+          </h3>
+          <p
+            id="confirmMessage"
+            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 font-medium"
+          >
+            Are you sure you want to proceed? This action may be irreversible.
+          </p>
+          <div class="flex gap-3">
+            <button
+              onclick="closeModal('confirmModal')"
+              class="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-colors uppercase text-[11px] tracking-widest"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirmBtn"
+              class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black rounded-2xl shadow-lg shadow-red-500/30 transition-all uppercase text-[11px] tracking-widest active:scale-95"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="enrollModal"
+      class="fixed inset-0 bg-black/60 hidden backdrop-blur-md flex items-center justify-center z-50 transition-opacity"
+    >
+      <div
+        class="glass bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden relative"
+      >
+        <div class="absolute -right-20 -top-20 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="bg-transparent px-8 py-6 flex justify-between items-center border-b border-slate-200/50 dark:border-slate-800/50 relative z-10">
+          <h3 class="font-black text-xl tracking-tight text-slate-800 dark:text-white flex items-center gap-3 w-full">
+            <span class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+               <span class="material-symbols-rounded">how_to_reg</span>
+            </span>
+            Enroll Student
+          </h3>
+          <button
+            onclick="closeModal('enrollModal')"
+            class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors text-slate-500 shrink-0"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <div class="p-6 sm:p-8 space-y-6 relative z-10">
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Student No.</label
+            >
+            <input
+              id="e_student"
+              class="input bg-slate-50 dark:bg-slate-900/50"
+              placeholder="e.g. 2023-00164-PQ-0"
+            />
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2"
+              >Course</label
+            >
+            <select id="e_course" class="input bg-slate-50 dark:bg-slate-900/50 appearance-none">
+              <option>Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div
+          class="px-8 py-6 bg-slate-50/50 dark:bg-slate-900/20 flex justify-end gap-3 border-t border-slate-200/50 dark:border-slate-800/50 relative z-10 backdrop-blur-sm"
+        >
+          <button
+            onclick="closeModal('enrollModal')"
+            class="px-6 py-3 text-slate-500 font-bold hover:text-slate-800 dark:hover:text-slate-300 transition-colors uppercase text-xs tracking-widest"
+          >
+            Cancel
+          </button>
+          <button
+            id="btnSaveEnroll"
+            onclick="saveEnrollment()"
+            class="px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg shadow-emerald-500/30 transition-all active:scale-95 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400"
+          >
+            Enroll
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-4 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden relative"
+      >
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/50 via-slate-50 to-slate-50 dark:from-indigo-900/20 dark:via-slate-900 dark:to-slate-900 -z-10"></div>
+        <div class="absolute -top-[20vh] -right-[10vw] w-[50vw] h-[50vw] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute top-[40vh] -left-[10vw] w-[40vw] h-[40vw] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div
+          class="flex flex-col sm:flex-row items-center justify-between mb-10 gap-6 relative z-10"
+        >
+          <div class="flex items-center gap-6 w-full sm:w-auto">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-2xl transition-colors shrink-0"
+            >
+              <span class="material-symbols-rounded text-3xl">menu</span>
+            </button>
+            <div
+              class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-[20px] shadow-lg shadow-indigo-600/20 flex items-center justify-center shrink-0 rotate-3 hover:rotate-0 transition-transform duration-500"
+            >
+              <span
+                class="material-symbols-rounded text-white text-3xl"
+                id="adminIcon"
+                >shield_person</span
+              >
+            </div>
+            <div>
+              <div
+                class="text-[11px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-1"
+                id="adminSub"
+              >
+                Control Center
+              </div>
+              <h1
+                class="text-4xl sm:text-5xl font-black tracking-tighter dark:text-white leading-none"
+                id="adminTitle"
+              >
+                Dashboard
+              </h1>
+              <p
+                class="text-slate-500 dark:text-slate-400 font-bold mt-2 text-[13px] tracking-wide flex items-center gap-2"
+              >
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                System Status: Optimized
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-4 shrink-0">
+            <button
+              onclick="toggleTheme()"
+              class="w-14 h-14 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 hover:scale-105"
+            >
+              <span class="material-symbols-rounded text-2xl">contrast</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 relative z-10">
+          <div
+            class="card glass animate-fade delay-100 flex flex-col p-6 border border-slate-200/50 dark:border-slate-700/50 shadow-sm bg-white/60 dark:bg-slate-900/60 rounded-[32px] hover:shadow-lg transition-all group overflow-hidden relative"
+          >
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-maroon/5 dark:bg-maroon/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <div
+                class="p-4 bg-maroon/10 dark:bg-maroon/20 rounded-2xl text-maroon dark:text-red-400 group-hover:scale-110 transition-transform shadow-sm"
+              >
+                <span class="material-symbols-rounded text-3xl">group</span>
+              </div>
+            </div>
+            <div class="relative z-10">
+              <div
+                class="text-5xl font-black tracking-tighter dark:text-white"
+                id="statUsers"
+              >
+                -
+              </div>
+              <div
+                class="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mt-2"
+              >
+                Users Addressed
+              </div>
+            </div>
+          </div>
+          <div
+            class="card glass animate-fade delay-200 flex flex-col p-6 border border-slate-200/50 dark:border-slate-700/50 shadow-sm bg-white/60 dark:bg-slate-900/60 rounded-[32px] hover:shadow-lg transition-all group overflow-hidden relative"
+          >
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <div
+                class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-sm border border-indigo-100/50 dark:border-indigo-800/50"
+              >
+                <span class="material-symbols-rounded text-3xl">book</span>
+              </div>
+            </div>
+            <div class="relative z-10">
+              <div
+                class="text-5xl font-black tracking-tighter text-indigo-600 dark:text-indigo-400"
+                id="statCourses"
+              >
+                -
+              </div>
+              <div
+                class="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mt-2"
+              >
+                Course Catalog
+              </div>
+            </div>
+          </div>
+          <div
+            class="card glass animate-fade delay-300 flex flex-col p-6 border border-slate-200/50 dark:border-slate-700/50 shadow-sm bg-white/60 dark:bg-slate-900/60 rounded-[32px] hover:shadow-lg transition-all group overflow-hidden relative"
+          >
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <div
+                class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform shadow-sm border border-emerald-100/50 dark:border-emerald-800/50"
+              >
+                <span class="material-symbols-rounded text-3xl">hub</span>
+              </div>
+            </div>
+            <div class="relative z-10">
+              <div
+                class="text-5xl font-black tracking-tighter text-emerald-600 dark:text-emerald-400"
+                id="statEnroll"
+              >
+                -
+              </div>
+              <div
+                class="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mt-2"
+              >
+                Total Enrollments
+              </div>
+            </div>
+          </div>
+          <div
+            class="card glass animate-fade delay-400 flex flex-col p-6 border border-slate-200/50 dark:border-slate-700/50 shadow-sm bg-white/60 dark:bg-slate-900/60 rounded-[32px] hover:shadow-lg transition-all group overflow-hidden relative"
+          >
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none"></div>
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <div
+                class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform shadow-sm border border-amber-100/50 dark:border-amber-800/50"
+              >
+                <span class="material-symbols-rounded text-3xl">health_and_safety</span>
+              </div>
+            </div>
+            <div class="relative z-10">
+              <div
+                class="text-5xl font-black tracking-tighter text-amber-600 dark:text-amber-400"
+                id="statGlobalRate"
+              >
+                --%
+              </div>
+              <div
+                class="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mt-2"
+              >
+                Overall Attendance
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Global Analytics Addon -->
+        <div class="grid grid-cols-1 gap-6 mb-8 hidden animate-fade delay-100 relative z-10" id="heatmapCard">
+             <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 p-6 sm:p-8 rounded-[32px] shadow-sm backdrop-blur-md">
+                 <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                     <div>
+                         <h3 class="font-black text-slate-800 dark:text-white uppercase tracking-widest text-[11px]">Institutional Heatmap</h3>
+                         <p class="text-[10px] text-slate-500 font-bold mt-1 tracking-tight">Timeline overview of global attendance health</p>
+                     </div>
+                     <div class="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-2xl border border-slate-200/30 dark:border-slate-700/30">
+                         <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span> Good</div>
+                         <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span> Mod</div>
+                         <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50"></span> Low</div>
+                     </div>
+                 </div>
+                 <div class="flex flex-wrap gap-1.5 sm:flex-nowrap sm:overflow-x-auto no-scrollbar pb-2 px-1 custom-scrollbar min-h-[28px]" id="heatmapContainer">
+                 </div>
+             </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 hidden relative z-10" id="adminAnalyticsUI">
+           <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 p-6 sm:p-8 rounded-[32px] shadow-sm backdrop-blur-md hover:shadow-lg transition-all relative overflow-hidden group">
+              <div class="absolute -right-20 -bottom-20 w-48 h-48 bg-rose-500/5 dark:bg-rose-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
+              <h3 class="font-black text-[11px] uppercase tracking-widest text-rose-500 mb-6 flex items-center gap-2 relative z-10">
+                <span class="material-symbols-rounded text-base">warning</span> High Risk Courses
+              </h3>
+              <div id="riskCoursesHtml" class="space-y-4 relative z-10"></div>
+           </div>
+           <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 p-6 sm:p-8 rounded-[32px] shadow-sm backdrop-blur-md hover:shadow-lg transition-all relative overflow-hidden group">
+              <div class="absolute -right-20 -bottom-20 w-48 h-48 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
+              <h3 class="font-black text-[11px] uppercase tracking-widest text-emerald-500 mb-6 flex items-center gap-2 relative z-10">
+                <span class="material-symbols-rounded text-base">verified</span> Most Engaged Courses
+              </h3>
+              <div id="engagedCoursesHtml" class="space-y-4 relative z-10"></div>
+           </div>
+        </div>
+
+        <div
+          class="flex items-center gap-3 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 p-3 rounded-3xl mb-8 overflow-x-auto shadow-sm relative z-10"
+        >
+          <button
+            onclick="showTab('users')"
+            id="tab-users"
+            class="tab-btn px-6 py-3 rounded-2xl flex-1 whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-95"
+          >
+            Manage Users
+          </button>
+          <button
+            onclick="showTab('courses')"
+            id="tab-courses"
+            class="tab-btn px-6 py-3 rounded-2xl flex-1 whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-95"
+          >
+            Courses
+          </button>
+          <button
+            onclick="showTab('rooms')"
+            id="tab-rooms"
+            class="tab-btn px-6 py-3 rounded-2xl flex-1 whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-95"
+          >
+            Rooms
+          </button>
+          <button
+            onclick="showTab('enrollments')"
+            id="tab-enrollments"
+            class="tab-btn px-6 py-3 rounded-2xl flex-1 whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-95"
+          >
+            Enrollments
+          </button>
+          <button
+            onclick="showTab('audit')"
+            id="tab-audit"
+            class="tab-btn px-6 py-3 rounded-2xl flex-1 whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-95"
+          >
+            Audit Logs
+          </button>
+          <button
+            onclick="showTab('system')"
+            id="tab-system"
+            class="tab-btn px-6 py-3 rounded-2xl flex-1 whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 active:scale-95 ml-2 border-l border-slate-300 dark:border-slate-700/50 pl-5"
+          >
+            Maintenance
+          </button>
+        </div>
+
+        <!-- User View -->
+        <div id="view-users" class="animate-fade delay-400 relative z-10">
+          <div
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+          >
+            <div class="relative w-full sm:w-80 group">
+              <span
+                class="material-symbols-rounded absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors"
+                >search</span
+              >
+              <input
+                id="searchUser"
+                class="input pl-14 h-14 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-white/20 dark:border-white/5"
+                placeholder="Find user by name or ID..."
+                onkeyup="filterUsers()"
+              />
+            </div>
+            <div class="flex gap-3 w-full sm:w-auto">
+              <button
+                onclick="
+                  document
+                    .getElementById('importModal')
+                    .classList.remove('hidden')
+                "
+                class="flex-1 sm:flex-none h-14 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 shadow-sm backdrop-blur-sm active:scale-95"
+              >
+                <span class="material-symbols-rounded text-lg"
+                  >cloud_upload</span
+                >
+                Bulk Import
+              </button>
+              <button
+                onclick="openUserModal()"
+                class="flex-1 sm:flex-none h-14 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-indigo-500/30"
+              >
+                <span class="material-symbols-rounded text-lg"
+                  >person_add</span
+                >
+                Add Account
+              </button>
+            </div>
+          </div>
+          <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden shadow-sm backdrop-blur-md">
+            <div class="table-container bg-transparent rounded-none">
+              <table class="w-full text-left">
+                <thead class="bg-white/40 dark:bg-slate-900/40 border-b border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+                  <tr>
+                    <th
+                      class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500"
+                    >
+                      FullName
+                    </th>
+                    <th
+                      class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500"
+                    >
+                      Role
+                    </th>
+                    <th
+                      class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500"
+                    >
+                      Affiliation
+                    </th>
+                    <th
+                      class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500 text-right"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="usersTable"
+                  class="text-sm dark:text-slate-300 divide-y divide-slate-200/30 dark:divide-slate-700/30"
+                >
+                  <tr>
+                    <td colspan="4" class="p-16 text-center text-slate-400">
+                      <div class="flex flex-col items-center gap-3">
+                        <span class="material-symbols-rounded text-3xl animate-spin text-indigo-500"
+                          >progress_activity</span
+                        >
+                        <span class="text-xs font-bold uppercase tracking-widest">Loading directory...</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course View -->
+        <div id="view-courses" class="hidden animate-fade relative z-10">
+          <div
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+          >
+            <div class="relative w-full sm:w-80 group">
+              <span
+                class="material-symbols-rounded absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-500 transition-colors"
+                >search</span
+              >
+              <input
+                id="searchCourse"
+                class="input pl-14 h-14 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-white/20 dark:border-white/5"
+                placeholder="Find course by name or code..."
+                onkeyup="filterCourses()"
+              />
+            </div>
+            <button
+              onclick="openCourseModal()"
+              class="w-full sm:w-auto h-14 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-purple-500/30"
+            >
+              <span class="material-symbols-rounded text-lg">add_circle</span>
+              Add Course
+            </button>
+          </div>
+          <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden shadow-sm backdrop-blur-md">
+            <div class="table-container bg-transparent rounded-none">
+              <table class="w-full text-left">
+                <thead class="bg-white/40 dark:bg-slate-900/40 border-b border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+                  <tr>
+                    <th
+                      class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500"
+                    >
+                      Course Code
+                    </th>
+                    <th
+                      class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500"
+                    >
+                      Course Name & Schedule
+                    </th>
+                    <th
+                      class="p-5 font-black text-[10px] uppercase tracking-widest text-slate-500"
+                    >
+                      Instructor
+                    </th>
+                    <th
+                      class="p-5 font-black text-[10px] uppercase tracking-widest text-slate-500 text-right"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="coursesTable"
+                  class="text-sm dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-800"
+                >
+                  <tr>
+                    <td colspan="4" class="p-10 text-center text-slate-400">
+                      Loading catalog...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-rooms" class="hidden animate-fade relative z-10">
+          <div
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+          >
+            <div class="relative w-full sm:w-80 group">
+              <span
+                class="material-symbols-rounded absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors"
+                >search</span
+              >
+              <input
+                id="searchRoom"
+                class="input pl-14 h-14 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-white/20 dark:border-white/5"
+                placeholder="Search rooms..."
+                onkeyup="filterRooms()"
+              />
+            </div>
+            <button
+              onclick="openRoomModal()"
+              class="w-full sm:w-auto h-14 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 shadow-amber-500/30"
+            >
+              <span class="material-symbols-rounded text-lg">add</span> Add Room
+            </button>
+          </div>
+          <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden shadow-sm backdrop-blur-md mb-8">
+            <div class="table-container bg-transparent rounded-none">
+              <table class="w-full text-left">
+                <thead class="bg-white/40 dark:bg-slate-900/40 border-b border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+                  <tr>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Room Name</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Type</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Capacity</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="roomsTable"
+                  class="animate-fade text-sm dark:text-slate-300 divide-y divide-slate-200/30 dark:divide-slate-700/30"
+                >
+                  <tr>
+                    <td colspan="4" class="p-16 text-center text-slate-400">
+                      Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <h2
+            class="text-[11px] font-black tracking-widest uppercase text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2"
+          >
+            <span class="material-symbols-rounded text-base">assessment</span> Room Utilization Report
+          </h2>
+          <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden shadow-sm backdrop-blur-md">
+            <div class="table-container bg-transparent rounded-none">
+              <table class="w-full text-left">
+                <thead class="bg-white/40 dark:bg-slate-900/40 border-b border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+                  <tr>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Room Name</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Total Scans</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Courses Hosted</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="utilizationTable"
+                  class="animate-fade text-sm dark:text-slate-300 divide-y divide-slate-200/30 dark:divide-slate-700/30"
+                >
+                  <tr>
+                    <td colspan="3" class="p-16 text-center text-slate-400">
+                      Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-enrollments" class="hidden animate-fade relative z-10">
+          <div
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
+          >
+            <h2 class="text-[11px] font-black tracking-widest uppercase text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <span class="material-symbols-rounded text-base">how_to_reg</span> Active Enrollments
+            </h2>
+            <button
+              onclick="openEnrollModal()"
+              class="w-full sm:w-auto h-14 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/30"
+            >
+              <span class="material-symbols-rounded text-lg">person_add</span> Enroll Student
+            </button>
+          </div>
+          <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden shadow-sm backdrop-blur-md">
+            <div class="table-container bg-transparent rounded-none">
+              <table class="w-full text-left">
+                <thead class="bg-white/40 dark:bg-slate-900/40 border-b border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+                  <tr>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Student Identity</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Course Information</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="enrollmentsTable"
+                  class="animate-fade text-sm dark:text-slate-300 divide-y divide-slate-200/30 dark:divide-slate-700/30"
+                >
+                  <tr>
+                    <td colspan="3" class="p-16 text-center text-slate-400">
+                      Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-system" class="hidden animate-fade relative z-10">
+          <h2 class="text-[11px] font-black tracking-widest uppercase text-slate-500 dark:text-slate-400 flex items-center gap-2 mb-6">
+            <span class="material-symbols-rounded text-base">build_circle</span> System Maintenance
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass border border-red-200/50 dark:border-red-900/30 bg-white/60 dark:bg-slate-900/60 p-8 rounded-[32px] shadow-sm backdrop-blur-md flex flex-col justify-between">
+              <div>
+                  <h3 class="text-[11px] font-black tracking-widest uppercase text-rose-600 dark:text-rose-500 mb-2 flex items-center gap-2">
+                    <span class="material-symbols-rounded text-base">warning</span> Data Purge
+                  </h3>
+                  <p class="text-[13px] font-bold text-slate-500 dark:text-slate-400 mb-6">
+                    Clear all attendance logs permanently. This action is absolutely irreversible and affects all system reports.
+                  </p>
+              </div>
+              <button
+                onclick="purgeLogs()"
+                class="w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-widest text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-rounded text-lg">delete_forever</span> Wipe Logs
+              </button>
+            </div>
+            <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 p-8 rounded-[32px] shadow-sm backdrop-blur-md flex flex-col justify-between">
+              <div>
+                  <h3 class="text-[11px] font-black tracking-widest uppercase text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                    <span class="material-symbols-rounded text-base">database</span> Data Extracts
+                  </h3>
+                  <p class="text-[13px] font-bold text-slate-500 dark:text-slate-400 mb-6">
+                    Download system backups in raw formats.
+                  </p>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button
+                  onclick="exportData('users')"
+                  class="flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-rounded text-lg">download</span> Users Data
+                </button>
+                <button
+                  onclick="exportData('courses')"
+                  class="flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-rounded text-lg">download</span> Courses
+                </button>
+                <button
+                  onclick="exportData('audit')"
+                  class="flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-widest text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-rounded text-lg">download</span> Audit CSV
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-audit" class="hidden animate-fade relative z-10">
+          <div
+            class="flex justify-between items-center mb-6"
+          >
+            <h2 class="text-[11px] font-black tracking-widest uppercase text-slate-500 dark:text-slate-400 flex items-center gap-2 mb-6">
+              <span class="material-symbols-rounded text-base">history</span> Security Audit Logs
+            </h2>
+          </div>
+          <div class="glass border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] overflow-hidden shadow-sm backdrop-blur-md">
+            <div class="table-container bg-transparent rounded-none max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <table class="w-full text-left">
+                <thead class="bg-white/40 dark:bg-slate-900/40 border-b border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md sticky top-0 z-20">
+                  <tr>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Timestamp</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">User Identity</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Action Type</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Details</th>
+                    <th class="p-6 font-black text-[11px] uppercase tracking-widest text-slate-500">Severity</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="auditTable"
+                  class="animate-fade text-sm dark:text-slate-300 divide-y divide-slate-200/30 dark:divide-slate-700/30"
+                >
+                  <tr>
+                    <td colspan="5" class="p-16 text-center text-slate-400">
+                      <div class="flex flex-col items-center gap-3">
+                        <span class="material-symbols-rounded text-3xl animate-spin text-slate-500"
+                          >progress_activity</span
+                        >
+                        <span class="text-xs font-bold uppercase tracking-widest">Loading history...</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/attendance_rules.js"></script>
+    <script>
+      checkAuth();
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      if (currentUser.role !== "admin" && currentUser.role !== "professor") {
+        alert("Access Denied");
+        window.location.href = "index.html";
+      }
+
+      // Role-based UI adjustments
+      if (currentUser.role === "professor") {
+        document.getElementById("adminIcon").innerText =
+          "settings_accessibility";
+        document.getElementById("adminSub").innerText = "Faculty Management";
+        document.getElementById("adminTitle").innerText = "Course Controls";
+        document.getElementById("tab-rooms").classList.add("hidden");
+        document.getElementById("tab-system").classList.add("hidden");
+        // Hide Import Button for professors
+        const importBtn = document.querySelector(
+          'button[onclick*="importModal"]',
+        );
+        if (importBtn) importBtn.classList.add("hidden");
+      }
+
+      let allUsers = [],
+        allCourses = [],
+        allRooms = [];
+      function showTab(t) {
+        ["users", "courses", "rooms", "enrollments", "system", "audit"].forEach(
+          (x) => {
+            const v = document.getElementById("view-" + x);
+            if (v) v.classList.add("hidden");
+            const ta = document.getElementById("tab-" + x);
+            if (ta) ta.classList.remove("tab-active");
+            if (ta) ta.classList.add("text-slate-500", "dark:text-slate-400");
+          },
+        );
+        const cv = document.getElementById("view-" + t);
+        if (cv) cv.classList.remove("hidden");
+        const cta = document.getElementById("tab-" + t);
+        if (cta) {
+          cta.classList.add("tab-active");
+          cta.classList.remove("text-slate-500", "dark:text-slate-400");
+        }
+        if (t === "audit") loadAudit();
+        if (t === "rooms") loadUtilization();
+      }
+      function toggleStudentFields() {
+        const r = document.getElementById("u_role").value,
+          f = document.getElementById("studentFields"),
+          pf = document.getElementById("profFields");
+        if (r === "student") {
+          f.classList.remove("opacity-50", "pointer-events-none");
+          if (pf) pf.classList.add("hidden");
+          document.getElementById("u_user").placeholder =
+            "e.g. 2023-00164-PQ-0";
+        } else if (r === "professor") {
+          f.classList.add("opacity-50", "pointer-events-none");
+          if (pf) pf.classList.remove("hidden");
+          document.getElementById("u_year").value = "";
+          document.getElementById("u_section_num").value = "";
+          document.getElementById("u_user").placeholder = "e.g. professor_1";
+        } else {
+          f.classList.add("opacity-50", "pointer-events-none");
+          if (pf) pf.classList.add("hidden");
+          document.getElementById("u_year").value = "";
+          document.getElementById("u_section_num").value = "";
+          document.getElementById("u_user").placeholder = "e.g. admin";
+        }
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.add("hidden");
+      }
+      function openConfirm(title, msg, onConfirm) {
+        document.getElementById("confirmTitle").innerText = title;
+        document.getElementById("confirmMessage").innerText = msg;
+        const btn = document.getElementById("confirmBtn");
+        btn.onclick = () => {
+          onConfirm();
+          closeModal("confirmModal");
+        };
+        document.getElementById("confirmModal").classList.remove("hidden");
+      }
+      function getSurname(name) {
+        if (!name) return "";
+        if (name.includes(",")) return name.split(",")[0].trim().toLowerCase();
+        const parts = name.trim().split(" ");
+        return parts[parts.length - 1].toLowerCase();
+      }
+
+      async function loadUsers() {
+        const table = document.getElementById("usersTable");
+        try {
+          allUsers = await getUsers();
+          if (allUsers.error) allUsers = [];
+          
+          allUsers.sort((a, b) => {
+            const nameA = a.full_name || a.username || "";
+            const nameB = b.full_name || b.username || "";
+            return getSurname(nameA).localeCompare(getSurname(nameB));
+          });
+          
+          document.getElementById("statUsers").innerText = allUsers.length;
+          filterUsers();
+        } catch (e) {
+          allUsers = [];
+          table.innerHTML =
+            '<tr><td colspan="4" class="p-10 text-center text-rose-500 font-bold">Failed to load users</td></tr>';
+        }
+      }
+      function renderUsers(l) {
+        if (!l.length) {
+          document.getElementById("usersTable").innerHTML =
+            '<tr><td colspan="4" class="p-10 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">group_off</span><span class="tracking-widest uppercase text-[10px]">No users found</span></div></td></tr>';
+          return;
+        }
+        document.getElementById("usersTable").innerHTML = l
+          .map((u) => {
+            const s = encodeURIComponent(JSON.stringify(u)),
+              b =
+                u.role === "admin"
+                  ? "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 dark:bg-fuchsia-900/40 dark:text-fuchsia-300 dark:border-fuchsia-700"
+                  : u.role === "professor"
+                    ? "bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-900/40 dark:text-sky-300 dark:border-sky-700"
+                    : "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700",
+              m =
+                u.role === "student"
+                  ? `<span class="text-slate-500 dark:text-slate-400">Year ${u.year || "?"} / ${u.section || "-"}</span>`
+                  : '<span class="text-slate-300">-</span>';
+            const enrollBtn =
+              u.role === "student"
+                ? `<button onclick="openEnrollModal('${u.username}')" class="text-emerald-500 hover:text-emerald-700 mr-3" title="Enroll in Course"><span class="material-symbols-rounded">hub</span></button>`
+                : "";
+            const deleteBtn =
+              currentUser.role === "admin"
+                ? `<button onclick="removeUser(${u.id})" class="text-rose-500 hover:text-rose-700"><span class="material-symbols-rounded">delete</span></button>`
+                : "";
+            return `<tr class="transition-colors hover:shadow-sm group"><td class="p-4 font-medium">${u.full_name}<div class="text-xs text-slate-400 font-mono">@${u.app_username || u.username} ${u.app_username ? `(${u.username})` : ''}</div></td><td class="p-4"><span class="px-2 py-1 rounded-[6px] text-[10px] font-black tracking-widest uppercase border ${b} shadow-sm inline-flex items-center justify-center">${u.role}</span></td><td class="p-4 text-sm">${m}</td><td class="p-4 text-right">${enrollBtn}<button onclick="openUserModal('${s}')" class="text-sky-500 hover:text-sky-700 mr-3"><span class="material-symbols-rounded">edit</span></button>${deleteBtn}</td></tr>`;
+          })
+          .join("");
+      }
+      function filterUsers() {
+        const t = document.getElementById("searchUser").value.toLowerCase();
+        renderUsers(
+          allUsers.filter(
+            (u) =>
+              u.username.toLowerCase().includes(t) ||
+              (u.full_name || "").toLowerCase().includes(t),
+          ),
+        );
+      }
+      function openUserModal(s = null) {
+        const m = document.getElementById("userModal"),
+          t = document.getElementById("userModalTitle"),
+          i = document.getElementById("u_id");
+        document.getElementById("u_name").value = "";
+        document.getElementById("u_user").value = "";
+        if (document.getElementById("u_app_usr")) document.getElementById("u_app_usr").value = "";
+        document.getElementById("u_role").value = "student";
+        document.getElementById("u_year").value = "";
+        document.getElementById("u_section_num").value = "";
+        document.getElementById("u_pass").value = "";
+        if (document.getElementById("u_faculty_code")) document.getElementById("u_faculty_code").value = "";
+        if (s) {
+          const u = JSON.parse(decodeURIComponent(s));
+          t.innerText = "Edit User";
+          i.value = u.id;
+          document.getElementById("u_name").value = u.full_name || "";
+          document.getElementById("u_user").value = u.username;
+          if (document.getElementById("u_app_usr")) document.getElementById("u_app_usr").value = u.app_username || "";
+          document.getElementById("u_role").value = u.role;
+          document.getElementById("u_year").value = u.year || "";
+          document.getElementById("u_section_num").value = u.section || "";
+          if (document.getElementById("u_faculty_code")) document.getElementById("u_faculty_code").value = u.faculty_code || "";
+          if (currentUser.role === "professor") {
+            document.getElementById("u_role").disabled = true;
+            document.getElementById("u_user").disabled = true;
+          }
+        } else {
+          t.innerText = "Add New User";
+          i.value = "";
+          if (currentUser.role === "professor") {
+            document.getElementById("u_role").value = "student";
+            document.getElementById("u_role").disabled = true;
+            document.getElementById("u_user").disabled = false;
+          } else {
+            document.getElementById("u_role").disabled = false;
+            document.getElementById("u_user").disabled = false;
+          }
+        }
+        toggleStudentFields();
+        m.classList.remove("hidden");
+      }
+      async function saveUser() {
+        const btn = document.getElementById("btnSaveUser");
+        const oldText = btn.innerHTML;
+        const id = document.getElementById("u_id").value,
+          sn = document.getElementById("u_section_num").value,
+          d = {
+            full_name: document.getElementById("u_name").value.trim(),
+            username: document.getElementById("u_user").value.trim(),
+            app_username: document.getElementById("u_app_usr") ? document.getElementById("u_app_usr").value.trim() : undefined,
+            role: document.getElementById("u_role").value,
+            password: document.getElementById("u_pass").value,
+            year: document.getElementById("u_year").value.trim(),
+            section: sn.trim(),
+            faculty_code: document.getElementById("u_faculty_code") ? document.getElementById("u_faculty_code").value.trim() : ""
+          };
+
+        if (!d.username || !d.full_name) {
+          return showToast("Full Name and Username/ID are required.", "error");
+        }
+
+        if (d.role === "student") {
+          // student ID formal check: YYYY-NNNNN-XX-NN
+          // Or at least avoid random spaces and require numbers
+          if (!/^[0-9]{4}-[0-9]{5}-[a-zA-Z]{2}-[0-9]$/i.test(d.username) && d.username.length < 8) {
+            return showToast("Please formulate a proper student number (e.g., 2023-00164-PQ-0).", "error");
+          }
+          if (!d.year || !d.section) {
+            return showToast("Year and Section are required for students.", "error");
+          }
+          if (isNaN(parseInt(d.year)) || parseInt(d.year) < 1 || parseInt(d.year) > 5) {
+             return showToast("Year must be between 1 and 5.", "error");
+          }
+        } 
+        
+        if (d.role === "professor") {
+           if (d.username.length < 4 || (d.faculty_code && d.faculty_code.length < 3)) {
+               return showToast("Please use standard institutional formats for professor IDs.", "error");
+           }
+        }
+
+        if (!id && !d.password) {
+          return showToast("Password is required for new users.", "error");
+        }
+
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin">progress_activity</span> Saving...';
+
+        try {
+          const r = id ? await adminUpdateUser(id, d) : await createUser(d);
+          if (r.success) {
+            closeModal("userModal");
+            loadUsers();
+            showToast("Saved");
+          } else showToast(r.error, "error");
+        } catch (e) {
+          showToast("Error saving user", "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
+      }
+      async function removeUser(id) {
+        openConfirm(
+          "Delete User",
+          "This will permanently remove this user account and all associated data. Are you sure?",
+          async () => {
+            await deleteUser(id);
+            loadUsers();
+            showToast("Deleted");
+          },
+        );
+      }
+      async function processImport() {
+        const t = document.getElementById("importText").value.trim();
+        if (!t) return showToast("Empty", "error");
+        const l = t.split("\n");
+        let c = 0;
+        for (let x of l) {
+          if (!x.trim()) continue;
+          let parts = x.split(",");
+          let u, p, r, n;
+          
+          if (parts.length === 2) {
+             // Quick Add Mode: username, fullname
+             u = parts[0].trim();
+             n = parts[1].trim();
+             p = "password123";
+             r = "student";
+          } else if (parts.length >= 4) {
+             // Full Mode
+             [u, p, r, n] = parts.map(i => i.trim());
+          }
+
+          if (u && p && r) {
+            await createUser({
+              username: u,
+              password: p,
+              role: r,
+              full_name: n || "",
+            });
+            c++;
+          }
+        }
+        showToast(`Imported ${c}`);
+        closeModal("importModal");
+        loadUsers();
+      }
+      async function loadCoursesList() {
+        allCourses = await fetchCourses();
+        if (allCourses.error) allCourses = [];
+        document.getElementById("statCourses").innerText = allCourses.length;
+        renderCourses(allCourses);
+        document.getElementById("e_course").innerHTML =
+          `<option disabled selected>Select...</option>` +
+          allCourses
+            .map((c) => `<option value="${c.code}">${c.code}</option>`)
+            .join("");
+      }
+      function renderCourses(l) {
+        if (!l.length) {
+          document.getElementById("coursesTable").innerHTML =
+            '<tr><td colspan="4" class="p-10 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">school</span><span class="tracking-widest uppercase text-[10px]">No courses found</span></div></td></tr>';
+          return;
+        }
+        document.getElementById("coursesTable").innerHTML = l
+          .map((c) => {
+            const s = encodeURIComponent(JSON.stringify(c));
+            const deleteBtn =
+              currentUser.role === "admin"
+                ? `<button onclick="removeCourse(${c.id})" class="text-red-500"><span class="material-symbols-rounded">delete</span></button>`
+                : "";
+            return `<tr class="transition-colors hover:shadow-sm"><td class="p-4"><div class="font-mono font-bold text-indigo-600 dark:text-indigo-400">${c.code}</div></td><td class="p-4"><div>${c.name}</div><div class="text-[10px] text-slate-400 uppercase font-black tracking-widest">${c.schedule || "No Schedule Set"}</div></td><td class="p-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">${c.assigned_faculty || "-"}</td><td class="p-4 text-right"><button onclick="openCourseModal('${s}')" class="text-blue-500 mr-3"><span class="material-symbols-rounded">edit</span></button>${deleteBtn}</td></tr>`;
+          })
+          .join("");
+      }
+      function filterCourses() {
+        const t = document.getElementById("searchCourse").value.toLowerCase();
+        renderCourses(
+          allCourses.filter(
+            (c) =>
+              c.code.toLowerCase().includes(t) ||
+              c.name.toLowerCase().includes(t),
+          ),
+        );
+      }
+      function openCourseModal(s = null) {
+        const m = document.getElementById("courseModal"),
+          i = document.getElementById("c_id");
+        if (s) {
+          const c = JSON.parse(decodeURIComponent(s));
+          document.getElementById("courseModalTitle").innerText = "Edit Course";
+          i.value = c.id;
+          document.getElementById("c_code").value = c.code;
+          document.getElementById("c_name").value = c.name;
+          document.getElementById("c_faculty").value = c.assigned_faculty || "";
+          document.getElementById("c_sched").value = c.schedule || "";
+          if (currentUser.role === "professor") {
+            document.getElementById("c_faculty").disabled = true;
+            document.getElementById("c_code").disabled = true;
+          }
+        } else {
+          document.getElementById("courseModalTitle").innerText = "Add Course";
+          i.value = "";
+          document.getElementById("c_code").value = "";
+          document.getElementById("c_name").value = "";
+          document.getElementById("c_faculty").value = "";
+          document.getElementById("c_sched").value = "";
+          document.getElementById("c_faculty").disabled = false;
+          document.getElementById("c_code").disabled = false;
+        }
+        m.classList.remove("hidden");
+      }
+      async function saveCourse() {
+        const btn = document.getElementById("btnSaveCourse");
+        const oldText = btn.innerHTML;
+        const id = document.getElementById("c_id").value;
+        if (currentUser.role === "professor" && !id) {
+          showToast("Professors cannot create courses", "error");
+          return;
+        }
+        const d = {
+          code: document.getElementById("c_code").value.trim(),
+          name: document.getElementById("c_name").value.trim(),
+          assigned_faculty: document.getElementById("c_faculty").value.trim(),
+          schedule: document.getElementById("c_sched").value.trim(),
+        };
+
+        if (!d.code || !d.name) {
+             return showToast("Course code and name are required fields.", "error"); 
+        }
+
+        if (d.code.length < 3 || d.code.length > 20) {
+             return showToast("Course code must be between 3 and 20 characters.", "error");
+        }
+
+        if (d.name.length < 5) {
+             return showToast("Please formulate a proper descriptive course name.", "error");
+        }
+
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin">progress_activity</span>';
+
+        try {
+          const r = id ? await updateCourse(id, d) : await createCourse(d);
+          if (r.success) {
+            closeModal("courseModal");
+            loadCoursesList();
+            showToast("Saved");
+          } else showToast(r.error, "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
+      }
+      async function removeCourse(id) {
+        openConfirm(
+          "Delete Course",
+          "Permanently remove this course from the catalog? This will affect enrollments and scanning.",
+          async () => {
+            await deleteCourse(id);
+            loadCoursesList();
+            showToast("Deleted");
+          },
+        );
+      }
+
+      async function loadRoomsList() {
+        allRooms = await fetchRooms();
+        if (allRooms.error) allRooms = [];
+        renderRooms(allRooms);
+      }
+      function renderRooms(l) {
+        document.getElementById("roomsTable").innerHTML = l.length
+          ? l
+              .map((r) => {
+                const s = encodeURIComponent(JSON.stringify(r));
+                return `<tr class="transition-colors hover:shadow-sm"><td class="p-4 font-bold text-amber-600 dark:text-amber-400">${r.name}</td><td class="p-4">${r.type}</td><td class="p-4">${r.capacity}</td><td class="p-4 text-right"><button onclick="openRoomModal('${s}')" class="text-blue-500 mr-3"><span class="material-symbols-rounded">edit</span></button><button onclick="removeRoom(${r.id})" class="text-red-500"><span class="material-symbols-rounded">delete</span></button></td></tr>`;
+              })
+              .join("")
+          : '<tr><td colspan="4" class="p-10 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">meeting_room</span><span class="tracking-widest uppercase text-[10px]">No rooms found</span></div></td></tr>';
+      }
+      function filterRooms() {
+        const t = document.getElementById("searchRoom").value.toLowerCase();
+        renderRooms(allRooms.filter((r) => r.name.toLowerCase().includes(t)));
+      }
+      function openRoomModal(s = null) {
+        const m = document.getElementById("roomModal"),
+          i = document.getElementById("r_id");
+        if (s) {
+          const r = JSON.parse(decodeURIComponent(s));
+          document.getElementById("roomModalTitle").innerText = "Edit Room";
+          i.value = r.id;
+          document.getElementById("r_name").value = r.name;
+          document.getElementById("r_type").value = r.type;
+          document.getElementById("r_cap").value = r.capacity;
+        } else {
+          document.getElementById("roomModalTitle").innerText = "Add Room";
+          i.value = "";
+          document.getElementById("r_name").value = "";
+          document.getElementById("r_cap").value = "";
+        }
+        m.classList.remove("hidden");
+      }
+      async function saveRoom() {
+        const btn = document.getElementById("btnSaveRoom");
+        const oldText = btn.innerHTML;
+        const id = document.getElementById("r_id").value,
+          d = {
+            name: document.getElementById("r_name").value,
+            type: document.getElementById("r_type").value,
+            capacity: document.getElementById("r_cap").value,
+          };
+        if (!d.name) return showToast("Required", "error");
+
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin">progress_activity</span>';
+
+        try {
+          const r = id ? await updateRoom(id, d) : await createRoom(d);
+          if (r.success) {
+            closeModal("roomModal");
+            loadRoomsList();
+            showToast("Saved");
+          } else showToast(r.error, "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
+      }
+      async function removeRoom(id) {
+        openConfirm(
+          "Delete Room",
+          "Are you sure you want to remove this room? Historical scans will still mention it but it cannot host new classes.",
+          async () => {
+            await deleteRoom(id);
+            loadRoomsList();
+            showToast("Deleted");
+          },
+        );
+      }
+      async function loadUtilization() {
+        const l = await fetchRoomUtilization();
+        document.getElementById("utilizationTable").innerHTML = l.length
+          ? l
+              .map(
+                (u) =>
+                  `<tr class="transition-colors hover:shadow-sm"><td class="p-4 font-bold">${u.name}<div class="text-xs text-slate-400 font-normal">${u.capacity} seats</div></td><td class="p-4">${u.total_scans} scans</td><td class="p-4 text-emerald-600 dark:text-emerald-400 font-medium">${u.courses_hosted} total courses</td></tr>`,
+              )
+              .join("")
+          : '<tr><td colspan="3" class="p-10 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">analytics</span><span class="tracking-widest uppercase text-[10px]">No utilization data</span></div></td></tr>';
+      }
+      async function loadEnrollments() {
+        let l = await getEnrollments();
+        if (l.error) l = [];
+        document.getElementById("statEnroll").innerText = l.length;
+        document.getElementById("enrollmentsTable").innerHTML = l.length
+          ? l
+              .map(
+                (e) =>
+                  `<tr class="transition-colors hover:shadow-sm"><td class="p-4 font-medium">${e.username}</td><td class="p-4"><span class="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-2 py-1 rounded border border-indigo-100 dark:border-indigo-800 text-xs font-bold">${e.code}</span></td><td class="p-4 text-right"><button onclick="removeEnrollment(${e.id})" class="text-red-500 text-sm hover:underline">Unenroll</button></td></tr>`,
+              )
+              .join("")
+          : '<tr><td colspan="3" class="p-10 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">how_to_reg</span><span class="tracking-widest uppercase text-[10px]">No enrollments found</span></div></td></tr>';
+      }
+      function openEnrollModal(username = null) {
+        const cs = document.getElementById("e_course");
+        if (cs) cs.innerHTML = "<option disabled selected>Loading...</option>";
+        loadCoursesList();
+        document.getElementById("e_student").value = username || "";
+        document.getElementById("enrollModal").classList.remove("hidden");
+      }
+      async function saveEnrollment() {
+        const btn = document.getElementById("btnSaveEnroll");
+        const oldText = btn.innerHTML;
+        const s = document.getElementById("e_student").value,
+          c = document.getElementById("e_course").value;
+        if (!s || !c) return showToast("Required", "error");
+
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin">progress_activity</span>';
+
+        try {
+          const r = await createEnrollment(s, c);
+          if (r.success) {
+            showToast("Enrolled!");
+            closeModal("enrollModal");
+            loadEnrollments();
+          } else showToast(r.error, "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
+      }
+      async function removeEnrollment(id) {
+        openConfirm(
+          "Unenroll Student",
+          "Are you sure you want to unenroll this student from the course?",
+          async () => {
+            await deleteEnrollment(id);
+            loadEnrollments();
+            showToast("Unenrolled");
+          },
+        );
+      }
+      async function purgeLogs() {
+        openConfirm(
+          "Purge All Logs",
+          "CRITICAL WARNING: This will permanently delete ALL attendance logs for ALL courses. Type 'YES' to confirm.",
+          async () => {
+            const r = await clearAllLogs();
+            if (r.success) showToast("Cleared.");
+          },
+        );
+      }
+      function exportData(t) {
+        let c = "",
+          n = "";
+        if (t === "users") {
+          c =
+            "Username,FullName,Role,Year,Section\n" +
+            allUsers
+              .map(
+                (u) =>
+                  `${u.username},${u.full_name || ""},${u.role},${u.year || ""},${u.section || ""}`,
+              )
+              .join("\n");
+          n = "users.csv";
+        } else if (t === "courses") {
+          c =
+            "Code,Name,Faculty,Schedule\n" +
+            allCourses
+              .map(
+                (x) =>
+                  `${x.code},${x.name},${x.assigned_faculty || ""},${x.schedule || ""}`,
+              )
+              .join("\n");
+          n = "courses.csv";
+        } else if (t === "audit") {
+          const btn = event.currentTarget;
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML =
+              '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span>';
+          }
+          fetchAuditLogs()
+            .then((logs) => {
+              const out =
+                "Time,User,Action,Details,Severity,IP,UserAgent\n" +
+                logs
+                  .map(
+                    (a) =>
+                      `"${a.timestamp}","${a.username || ""}","${a.action}","${(a.details || "").replace(/"/g, '""')}","${a.severity}","${a.ip_address || ""}","${(a.user_agent || "").replace(/"/g, '""')}"`,
+                  )
+                  .join("\n");
+              const l = document.createElement("a");
+              l.href = encodeURI("data:text/csv;charset=utf-8," + out);
+              l.download = "audit_logs.csv";
+              document.body.appendChild(l);
+              l.click();
+              document.body.removeChild(l);
+            })
+            .finally(() => {
+              if (btn) {
+                btn.disabled = false;
+                btn.innerHTML =
+                  '<span class="material-symbols-rounded">download</span> Audit CSV';
+              }
+            });
+          return;
+        }
+        const l = document.createElement("a");
+        l.href = encodeURI("data:text/csv;charset=utf-8," + c);
+        l.download = n;
+        document.body.appendChild(l);
+        l.click();
+        document.body.removeChild(l);
+      }
+      async function loadAudit() {
+        let l = await fetchAuditLogs();
+        if (l.error) l = [];
+        document.getElementById("auditTable").innerHTML = l.length
+          ? l
+              .map((a) => {
+                let sevColor = "bg-slate-100 text-slate-700";
+                if (a.severity === "INFO")
+                  sevColor = "bg-blue-100 text-blue-700";
+                if (a.severity === "WARN")
+                  sevColor = "bg-amber-100 text-amber-700";
+                if (a.severity === "ERROR")
+                  sevColor = "bg-rose-100 text-rose-700";
+                return `<tr class="transition-colors hover:shadow-sm"><td class="p-4 text-slate-500 font-mono text-xs">${formatDate(a.timestamp)} ${formatTime(a.timestamp)}</td><td class="p-4 font-bold text-slate-700 dark:text-slate-200">${a.username || "-"}</td><td class="p-4"><span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold">${a.action}</span></td><td class="p-4 text-sm">${a.details}</td><td class="p-4"><span class="${sevColor} px-2 py-1 rounded text-xs font-bold">${a.severity || "INFO"}</span></td><td class="p-4 text-[10px] text-slate-400 font-mono truncate max-w-[150px]" title="${a.ip_address} | ${a.user_agent}">IP: ${a.ip_address || "-"}<br/>${(a.user_agent || "-").substring(0, 25)}</td></tr>`;
+              })
+              .join("")
+          : '<tr><td colspan="6" class="p-10 text-center text-slate-400 font-bold"><div class="flex flex-col items-center gap-4 justify-center"><span class="material-symbols-rounded text-5xl opacity-40">policy</span><span class="tracking-widest uppercase text-[10px]">No logs found</span></div></td></tr>';
+      }
+      async function loadGlobalAnalytics() {
+         const metrics = await fetchAdminAnalytics();
+         if (!metrics || metrics.error) return;
+         document.getElementById('statGlobalRate').innerText = metrics.globalAttendanceRate + '%';
+         
+         if (metrics.trends && typeof renderHeatmap === 'function') {
+             renderHeatmap('heatmapContainer', metrics.trends, 'heatmapCard');
+         }
+
+         if (metrics.highRiskCourses.length > 0) {
+             document.getElementById('adminAnalyticsUI').classList.remove('hidden');
+             const rh = metrics.highRiskCourses.map(c => 
+                 `<div class="flex justify-between items-center bg-rose-50 dark:bg-rose-500/5 p-3 rounded-2xl">
+                     <div class="flex items-center gap-3"><span class="bg-rose-100 dark:bg-rose-500/20 text-rose-500 font-bold px-2 py-0.5 rounded-lg text-xs">${c.code}</span><span class="font-bold text-sm text-slate-800 dark:text-slate-300 truncate w-32 md:w-auto overflow-hidden">${c.name}</span></div>
+                     <span class="font-black text-rose-600 dark:text-rose-400">${c.attendanceRate.toFixed(1)}% Attd</span>
+                 </div>`
+             ).join('');
+             document.getElementById('riskCoursesHtml').innerHTML = rh;
+         }
+         if (metrics.mostEngagedCourses.length > 0) {
+             document.getElementById('adminAnalyticsUI').classList.remove('hidden');
+             const eh = metrics.mostEngagedCourses.map(c => 
+                 `<div class="flex justify-between items-center bg-emerald-50 dark:bg-emerald-500/5 p-3 rounded-2xl">
+                     <div class="flex items-center gap-3"><span class="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 font-bold px-2 py-0.5 rounded-lg text-xs">${c.code}</span><span class="font-bold text-sm text-slate-800 dark:text-slate-300 truncate w-32 md:w-auto overflow-hidden">${c.name}</span></div>
+                     <span class="font-black text-emerald-600 dark:text-emerald-400">${c.attendanceRate.toFixed(1)}% Attd</span>
+                 </div>`
+             ).join('');
+             document.getElementById('engagedCoursesHtml').innerHTML = eh;
+         }
+      }
+
+      (async () => {
+        await loadUsers();
+        await loadCoursesList();
+        await loadRoomsList();
+        await loadEnrollments();
+        await loadGlobalAnalytics();
+      })();
+    </script>
+  </body>
+</html>

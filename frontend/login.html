@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Login — PUP-Student Attendance System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-surface dark:bg-slate-900 flex items-center justify-center min-h-[100dvh] relative overflow-hidden transition-colors font-sans"
+  >
+    <div class="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-maroon/10 via-background to-background dark:from-maroon/20 dark:via-slate-900 dark:to-slate-900"></div>
+    
+    <div
+      class="absolute top-0 right-0 w-[40vw] h-[40vw] bg-maroon/20 dark:bg-maroon/30 rounded-full mix-blend-multiply filter blur-[100px] animate-blob translate-x-1/3 -translate-y-1/3"
+    ></div>
+    <div
+      class="absolute bottom-0 left-0 w-[50vw] h-[50vw] bg-gold/20 dark:bg-gold/10 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-2000 -translate-x-1/4 translate-y-1/4"
+    ></div>
+
+    <button
+      onclick="toggleTheme()"
+      class="absolute top-8 right-8 w-14 h-14 rounded-2xl bg-white/60 dark:bg-slate-800/60 shadow-lg backdrop-blur-xl flex items-center justify-center text-maroon dark:text-gold transition-all duration-300 z-20 border border-white/20 dark:border-white/10 hover:scale-105 hover:bg-white/80 dark:hover:bg-slate-800/80"
+    >
+      <span class="material-symbols-rounded text-2xl"
+        >contrast</span
+      >
+    </button>
+
+    <div
+      class="card glass bg-white/60 dark:bg-slate-900/60 w-full max-w-md mx-6 p-10 rounded-[32px] z-10 animate-fade flex flex-col gap-8 shadow-[0_8px_40px_rgba(128,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)] border border-white/40 dark:border-white/10"
+    >
+      <div class="text-center">
+        <div
+          class="w-20 h-20 bg-maroon dark:bg-maroon/20 rounded-3xl flex items-center justify-center mx-auto mb-6 text-white dark:text-maroon shadow-[0_8px_20px_rgba(128,0,0,0.2)] dark:shadow-none transition-all rotate-3 hover:rotate-0 duration-500"
+        >
+          <span class="material-symbols-rounded text-4xl"
+            >school</span
+          >
+        </div>
+        <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+          <span class="text-maroon dark:text-red-400">PUP</span>-<span class="text-maroon dark:text-red-400">S</span>tudent <br/> <span class="text-maroon dark:text-red-400">A</span>ttendance <span class="text-maroon dark:text-red-400">S</span>ystem
+        </h1>
+        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-2 tracking-wide uppercase">
+          System Portal
+        </p>
+      </div>
+
+      <form id="loginForm" class="flex flex-col gap-5">
+        <div>
+          <label
+            class="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+            >Student / Faculty ID</label
+          >
+          <div class="relative group">
+            <span
+              class="absolute inset-y-0 left-0 pl-5 flex items-center text-slate-400 group-focus-within:text-maroon dark:group-focus-within:text-red-400 transition-colors"
+              ><span class="material-symbols-rounded text-xl"
+                >person</span
+              ></span
+            >
+            <input
+              id="username"
+              type="text"
+              required
+              class="input pl-14 h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-white/20 dark:border-white/5"
+              placeholder="e.g. 2023-00164-PQ-0"
+              autocomplete="username"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            class="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+            >Password</label
+          >
+          <div class="relative group">
+            <span
+              class="absolute inset-y-0 left-0 pl-5 flex items-center text-slate-400 group-focus-within:text-maroon dark:group-focus-within:text-red-400 transition-colors"
+              ><span class="material-symbols-rounded text-xl">key</span></span
+            >
+            <input
+              id="password"
+              type="password"
+              required
+              class="input pl-14 h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-white/20 dark:border-white/5"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+          </div>
+        </div>
+
+        <div
+          id="errorMsg"
+          class="text-red-600 dark:text-red-400 text-[13px] font-bold text-center hidden bg-red-50 dark:bg-red-900/20 p-4 rounded-2xl border border-red-100 dark:border-red-900/50 flex items-center justify-center gap-2 animate-slide-up"
+        >
+          <span class="material-symbols-rounded text-lg">error</span>
+          <span id="errorText">Invalid credentials</span>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary w-full h-14 mt-2 text-sm tracking-widest shadow-xl shadow-maroon/20 dark:shadow-none"
+        >
+          Sign In
+        </button>
+      </form>
+
+      <div
+        class="text-center text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest pt-4 border-t border-slate-200/50 dark:border-slate-700/50"
+      >
+        Polytechnic University of the Philippines
+      </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+      if (localStorage.getItem("token")) {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        if (user.role === "admin") location.href = "admin.html";
+        else if (user.role === "student")
+          location.href = "student-dashboard.html";
+        else location.href = "index.html";
+      }
+
+      document.getElementById("loginForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button");
+        const err = document.getElementById("errorMsg");
+        const errText = document.getElementById("errorText");
+
+        err.classList.add("hidden");
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded text-lg animate-spin">progress_activity</span> Signing in...';
+
+        const userIn = document.getElementById("username").value;
+        const passIn = document.getElementById("password").value;
+
+        try {
+          const totpIn = document.getElementById("totp")
+            ? document.getElementById("totp").value
+            : "";
+          const res = await login(userIn, passIn, totpIn);
+          if (res.require_2fa) {
+            if (!document.getElementById("totpDiv")) {
+              const form = document.getElementById("loginForm");
+              const div = document.createElement("div");
+              div.id = "totpDiv";
+              div.className = "animate-slide-up mt-2";
+              div.innerHTML = `
+            <label class="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Authenticator Code (2FA)</label>
+            <div class="relative group">
+              <span class="absolute inset-y-0 left-0 pl-5 flex items-center text-slate-400 group-focus-within:text-maroon dark:group-focus-within:text-red-400 transition-colors"><span class="material-symbols-rounded text-xl">password</span></span>
+              <input id="totp" type="text" required class="input pl-14 h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-white/20 dark:border-white/5 text-center tracking-[0.5em] font-black text-lg" placeholder="000000" maxlength="6">
+            </div>
+          `;
+              form.insertBefore(div, document.getElementById("errorMsg"));
+            }
+            btn.disabled = false;
+            btn.innerHTML = "Verify 2FA";
+            return;
+          }
+          if (res.token) {
+            localStorage.setItem("token", res.token);
+            localStorage.setItem("user", JSON.stringify(res.user));
+            if (res.user.role === "admin") window.location.href = "admin.html";
+            else if (res.user.role === "student")
+              window.location.href = "student-dashboard.html";
+            else window.location.href = "index.html";
+          } else {
+            if (res.error === 'invalid_credentials' || res.error === 'session_expired') {
+                throw new Error("Invalid username or password.");
+            } else if (res.error === 'invalid_totp') {
+                throw new Error("Invalid authenticator code.");
+            }
+            throw new Error(res.error || "Invalid username or password.");
+          }
+        } catch (error) {
+          errText.innerText = error.message;
+          err.classList.remove("hidden");
+          btn.disabled = false;
+          btn.innerHTML = "Sign In";
+        }
+      };
+    </script>
+  </body>
+</html>

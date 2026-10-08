@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Help — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-3 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden relative"
+      >
+        <div class="absolute top-0 right-0 w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-[30vw] h-[30vw] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+
+        <div
+          class="relative z-10 glass card w-full rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 mb-8 sm:mb-12 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60"
+        >
+          <div class="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors shrink-0"
+            >
+              <span class="material-symbols-rounded" style="font-size: 1.5em"
+                >menu</span
+              >
+            </button>
+            <div
+              class="w-12 h-12 sm:w-16 sm:h-16 rounded-[20px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white shrink-0 rotate-3 hover:rotate-0 transition-transform duration-500"
+            >
+              <span class="material-symbols-rounded text-2xl sm:text-3xl">help_center</span>
+            </div>
+            <div class="truncate">
+              <h1
+                class="text-2xl sm:text-4xl font-black tracking-tighter dark:text-white truncate leading-none mb-1"
+              >
+                Knowledge Base
+              </h1>
+              <p
+                class="text-xs sm:text-sm text-slate-500 font-bold uppercase tracking-widest truncate"
+              >
+                Operational procedures & guides
+              </p>
+            </div>
+          </div>
+          <button
+            onclick="toggleTheme()"
+            class="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:scale-105 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 ml-auto sm:ml-0"
+          >
+            <span class="material-symbols-rounded" style="font-size: 20px"
+              >contrast</span
+            >
+          </button>
+        </div>
+
+        <div
+          id="helpContent"
+          class="max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-8"
+        >
+          <!-- Dynamic Content -->
+        </div>
+
+        <div id="faqSection" class="mt-12 sm:mt-20 max-w-5xl hidden">
+          <h3
+            class="text-xl sm:text-3xl font-black mb-6 sm:mb-10 dark:text-white flex items-center gap-3"
+          >
+            <span
+              class="material-symbols-rounded text-gold text-2xl sm:text-4xl"
+              >quiz</span
+            >
+            Operations FAQ
+          </h3>
+          <div
+            id="faqGrid"
+            class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8"
+          >
+            <!-- Dynamic FAQ -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+      checkAuth();
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const contentMap = {
+        admin: {
+          items: [
+            {
+              icon: "dashboard",
+              title: "System Statistics",
+              desc: "Real-time system health and attendance metrics across all departments.",
+            },
+            {
+              icon: "shield_person",
+              title: "Audit Logs",
+              desc: "Complete logging of all system interactions and critical security events.",
+            },
+            {
+              icon: "group",
+              title: "User Management",
+              desc: "Administrative tools for student discovery and faculty onboarding workflows.",
+            },
+            {
+              icon: "description",
+              title: "Data Export",
+              desc: "Batch export systems for XLS/PDF historical record keeping.",
+            },
+            {
+              icon: "settings_suggest",
+              title: "System Status",
+              desc: "Monitor server performance and real-time database distribution.",
+            },
+          ],
+          faqs: [
+            {
+              q: "Change Credentials?",
+              a: "Update access keys via the Settings page. Changes persist instantly across all active nodes.",
+            },
+            {
+              q: "System Integrity?",
+              a: "Review Audit Logs daily to detect anomalies or failed login attempts.",
+            },
+          ],
+        },
+        professor: {
+          items: [
+            {
+              icon: "layers",
+              title: "Attendance Modes",
+              desc: "PHYSICAL (QR-only), ONLINE (GPS-only), and HYBRID (GPS + Code) workflows.",
+            },
+            {
+              icon: "fullscreen",
+              title: "Presenting QR Code",
+              desc: 'Use "Fullscreen Mode" on your projector for maximized scanning readability.',
+            },
+            {
+              icon: "key",
+              title: "Session Codes",
+              desc: "Distribute alphanumeric codes if visual scanning is denied by student hardware.",
+            },
+            {
+              icon: "how_to_reg",
+              title: "Assisted Attendance",
+              desc: "Manually mark students via the Live Monitor list if they face connectivity issues.",
+            },
+            {
+              icon: "monitoring",
+              title: "Live Monitoring",
+              desc: "Real-time visibility into student distribution during the active session window.",
+            },
+          ],
+          faqs: [
+            {
+              q: "Missing Student?",
+              a: "Students must be enrolled in your course to appear in the session roster. Use the Course Details page to verify.",
+            },
+            {
+              q: "QR Not Scanning?",
+              a: "Ensure the projector brightness is sufficient. If lighting is poor, provide the 6-digit Session Code instead.",
+            },
+          ],
+        },
+        student: {
+          items: [
+            {
+              icon: "hub",
+              title: "Attendance Hub",
+              desc: "Your main dashboard for all active classroom check-in actions.",
+            },
+            {
+              icon: "qr_code_scanner",
+              title: "QR Scanning",
+              desc: "Fast, secure verification via your personal student QR.",
+            },
+            {
+              icon: "pin",
+              title: "Session Codes",
+              desc: "Manually enter the 6-digit code provided by your professor if your camera fails.",
+            },
+            {
+              icon: "my_location",
+              title: "Online Check-in",
+              desc: "GPS-verified attendance for remote or Hybrid learning environments.",
+            },
+            {
+              icon: "history_edu",
+              title: "Excuse Letters",
+              desc: "Submit absence justifications and proof directly via your Attendance record.",
+            },
+          ],
+          faqs: [
+            {
+              q: "Camera Blocked?",
+              a: 'If you denied camera access, the system automatically exposes the "Enter Session Code" field as a fallback.',
+            },
+            {
+              q: "Disconnected?",
+              a: "The app supports offline scanning. Your check-in will sync automatically once data connectivity is restored.",
+            },
+          ],
+        },
+      };
+
+      const role = user.role || "student";
+      const data = contentMap[role] || contentMap.student;
+
+      const helpGrid = document.getElementById("helpContent");
+      helpGrid.innerHTML = data.items
+        .map(
+          (item, idx) => `
+    <div class="card p-6 sm:p-8 group hover:shadow-2xl transition-all shadow-maroon/5 border-none opacity-0 animate-fade" style="animation-delay: ${idx * 100}ms">
+      <div class="flex items-start gap-4 sm:gap-6">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-maroon/5 dark:bg-maroon/20 text-maroon dark:text-red-400 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+          <span class="material-symbols-rounded text-2xl sm:text-3xl">${item.icon}</span>
+        </div>
+        <div>
+          <h2 class="text-lg sm:text-xl font-black mb-2 dark:text-white">${item.title}</h2>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">${item.desc}</p>
+        </div>
+      </div>
+    </div>
+  `,
+        )
+        .join("");
+
+      if (data.faqs.length) {
+        document.getElementById("faqSection").classList.remove("hidden");
+        const faqGrid = document.getElementById("faqGrid");
+        faqGrid.innerHTML = data.faqs
+          .map(
+            (faq) => `
+      <div class="card p-4 sm:p-6 bg-white dark:bg-slate-800/50 border-none shadow-xl border border-slate-100 dark:border-slate-700">
+        <div class="font-black text-[8px] sm:text-[10px] uppercase tracking-widest text-maroon dark:text-gold mb-2">Operational Insight</div>
+        <div class="font-bold mb-1 dark:text-white text-base sm:text-lg">${faq.q}</div>
+        <div class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">${faq.a}</div>
+      </div>
+    `,
+          )
+          .join("");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Settings — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        ((!("theme" in localStorage) && false))
+      )
+        document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    </script>
+
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >photo_camera</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-3 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden relative"
+      >
+        <div class="absolute top-0 right-0 w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-[30vw] h-[30vw] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+
+        <div
+          class="relative z-10 glass card w-full rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 mb-8 sm:mb-12 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60"
+        >
+          <div class="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden text-slate-800 dark:text-slate-300 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors shrink-0"
+            >
+              <span class="material-symbols-rounded" style="font-size: 1.5em"
+                >menu</span
+              >
+            </button>
+            <div
+              class="w-12 h-12 sm:w-16 sm:h-16 rounded-[20px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white shrink-0 rotate-3 hover:rotate-0 transition-transform duration-500"
+            >
+              <span class="material-symbols-rounded text-2xl sm:text-3xl">settings</span>
+            </div>
+            <div class="truncate">
+              <h1
+                class="text-2xl sm:text-4xl font-black tracking-tighter dark:text-white truncate leading-none mb-1"
+              >
+                Configuration
+              </h1>
+              <p
+                class="text-xs sm:text-sm text-slate-500 font-bold uppercase tracking-widest truncate"
+              >
+                Manage Identity & Prefs
+              </p>
+            </div>
+          </div>
+          <button
+            onclick="toggleTheme()"
+            class="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm hover:scale-105 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 ml-auto sm:ml-0"
+          >
+            <span class="material-symbols-rounded" style="font-size: 20px"
+              >contrast</span
+            >
+          </button>
+        </div>
+
+        <div class="max-w-4xl mx-auto space-y-6 sm:space-y-12">
+          <!-- SECTION: PUBLIC IDENTITY -->
+          <div
+            class="card p-6 sm:p-10 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm animate-fade delay-100 rounded-[24px] sm:rounded-[32px]"
+          >
+            <h3
+              class="text-base sm:text-xl font-black mb-6 sm:mb-8 flex items-center gap-3 dark:text-white uppercase tracking-tight"
+            >
+              <span
+                class="material-symbols-rounded text-maroon dark:text-red-400 p-2 bg-maroon/5 dark:bg-maroon/20 rounded-xl"
+                >person_settings</span
+              >
+              Account Details
+            </h3>
+
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-10"
+            >
+              <div class="w-full relative">
+                <label
+                  class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+                  >Display Name</label
+                >
+                <input
+                  id="fullName"
+                  class="input shadow-sm py-3 px-4 w-full"
+                  placeholder="Your Name"
+                />
+              </div>
+              <div class="w-full relative">
+                <label
+                  class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+                  >Verified Role</label
+                >
+                <input
+                  id="roleDisp"
+                  class="input bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold border-none py-3 px-4 w-full"
+                  disabled
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SECTION: SECURITY SETTINGS -->
+          <div
+            class="card p-6 sm:p-10 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm animate-fade delay-200 rounded-[24px] sm:rounded-[32px]"
+          >
+            <h3
+              class="text-base sm:text-xl font-black mb-6 sm:mb-8 flex items-center gap-3 dark:text-white uppercase tracking-tight"
+            >
+              <span
+                class="material-symbols-rounded text-maroon dark:text-red-400 p-2 bg-maroon/5 dark:bg-maroon/20 rounded-xl"
+                >security</span
+              >
+              Security
+            </h3>
+
+            <div class="mb-8">
+              <label
+                class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+                >Change Password</label
+              >
+              <div class="relative">
+                <input
+                  id="newPass"
+                  type="password"
+                  class="input pr-12 shadow-sm py-3 px-4 w-full"
+                  placeholder="Secure current credentials"
+                />
+                <span
+                  class="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  >lock</span
+                >
+              </div>
+              <p class="text-[10px] text-slate-500 mt-2 italic">
+                Minimum of 8 characters required.
+              </p>
+            </div>
+
+            <div class="space-y-4 pt-6 border-t dark:border-slate-800">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+              >
+                <div>
+                  <h4
+                    class="text-sm font-black dark:text-white uppercase tracking-tighter"
+                  >
+                    Two-Factor Auth
+                  </h4>
+                  <p class="text-[11px] text-slate-500">
+                    Protect access with TOTP.
+                  </p>
+                </div>
+                <div id="2faStatusBadge" class="self-start sm:self-auto"></div>
+              </div>
+
+              <!-- 2FA Setup Flow -->
+              <div
+                id="2faSetupArea"
+                class="hidden animate-slide-up flex flex-col items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-6 rounded-2xl border dark:border-slate-800 overflow-hidden w-full"
+              >
+                <div
+                  class="text-[10px] text-slate-500 font-medium text-center leading-relaxed"
+                >
+                  Scan with your authenticator app.
+                </div>
+                <div
+                  class="p-3 bg-white rounded-xl shadow-inner max-w-full overflow-hidden"
+                >
+                  <img
+                    id="2faQR"
+                    class="w-32 h-32 sm:w-40 sm:h-40"
+                    src=""
+                    alt="QR Code"
+                  />
+                </div>
+                <div
+                  class="text-[9px] text-slate-400 font-mono tracking-widest bg-white dark:bg-slate-800 px-3 py-1 rounded-full border dark:border-slate-700 max-w-full truncate"
+                  id="2faSecretDisplay"
+                ></div>
+                <input
+                  id="2faCodeInput"
+                  type="text"
+                  placeholder="------"
+                  class="input w-32 text-center font-mono tracking-[0.4em] text-base bg-white h-12"
+                  maxlength="6"
+                />
+                <div class="flex flex-col sm:flex-row gap-2 w-full">
+                  <button
+                    onclick="verify2FA()"
+                    class="btn-primary flex-1 h-12 py-0 px-4 text-[10px]"
+                  >
+                    Activate 2FA
+                  </button>
+                  <button
+                    onclick="cancel2FA()"
+                    class="px-4 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-colors"
+                  >
+                    Discard
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2FA Active State -->
+              <div
+                id="2faEnabledArea"
+                class="hidden flex flex-col sm:flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 gap-4"
+              >
+                <div class="flex items-center gap-3 w-full">
+                  <div
+                    class="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0"
+                  >
+                    <span class="material-symbols-rounded">check</span>
+                  </div>
+                  <div class="truncate">
+                    <div
+                      class="text-sm font-black text-emerald-800 dark:text-emerald-400 truncate"
+                    >
+                      Account Protected
+                    </div>
+                    <div
+                      class="text-[9px] text-emerald-600/70 dark:text-emerald-500 tracking-wide truncate"
+                    >
+                      Multi-factor active.
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <input
+                    id="disable2faCode"
+                    type="text"
+                    placeholder="Code"
+                    class="input w-full sm:w-24 text-center text-xs tracking-widest font-mono h-10 border-emerald-200"
+                    maxlength="6"
+                  />
+                  <button
+                    onclick="disable2FA()"
+                    class="text-[10px] font-black text-rose-500 hover:text-white uppercase tracking-widest bg-white dark:bg-slate-900 hover:bg-rose-500 px-4 h-10 rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/30 transition-all whitespace-nowrap"
+                  >
+                    Off
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2FA Idle State -->
+              <div
+                id="2faIdleArea"
+                class="bg-white dark:bg-slate-900/40 p-4 rounded-2xl border dark:border-slate-800 flex items-center justify-between hover:border-maroon/20 transition-colors group gap-3"
+              >
+                <div class="flex items-center gap-3 truncate">
+                  <span
+                    class="material-symbols-rounded text-slate-400 dark:text-slate-500 group-hover:text-maroon dark:group-hover:text-red-400 transition-colors"
+                    >phonelink_lock</span
+                  >
+                  <span
+                    class="text-[11px] font-bold text-slate-600 dark:text-slate-400 italic truncate"
+                    >2FA is currently disabled.</span
+                  >
+                </div>
+                <button
+                  onclick="init2FA()"
+                  class="text-[9px] font-black text-maroon dark:text-gold uppercase tracking-widest px-4 h-10 border border-maroon/10 dark:border-gold/10 rounded-xl hover:bg-maroon hover:text-white dark:hover:bg-gold dark:hover:text-maroon transition-all whitespace-nowrap"
+                >
+                  Enable
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION: APP PREFERENCES -->
+          <div
+            class="card p-6 sm:p-10 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm animate-fade delay-300 rounded-[24px] sm:rounded-[32px]"
+          >
+            <h3
+              class="text-base sm:text-xl font-black mb-6 sm:mb-8 flex items-center gap-3 dark:text-white uppercase tracking-tight"
+            >
+              <span
+                class="material-symbols-rounded text-maroon dark:text-red-400 p-2 bg-maroon/5 dark:bg-maroon/20 rounded-xl"
+                >tune</span
+              >
+              Preferences
+            </h3>
+
+            <div
+              id="professorPrefs"
+              class="hidden mb-8 pb-8 border-b dark:border-slate-800 space-y-6"
+            >
+              <h4
+                class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4"
+              >
+                <span class="material-symbols-rounded text-sm">school</span>
+                Session Defaults
+              </h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div
+                  class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border dark:border-slate-800"
+                >
+                  <div
+                    class="text-[11px] font-black dark:text-white mb-2 uppercase"
+                  >
+                    QR Auto-Enlarge
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] text-slate-500"
+                      >Full screen QR on start</span
+                    >
+                    <label class="switch">
+                      <input
+                        type="checkbox"
+                        id="prefQREnlarge"
+                        onchange="savePrefs()"
+                      />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border dark:border-slate-800"
+                >
+                  <div
+                    class="text-[11px] font-black dark:text-white mb-2 uppercase tracking-tighter"
+                  >
+                    Attendance Mode
+                  </div>
+                  <select
+                    id="prefAttendMode"
+                    class="input text-[10px] h-8 py-0 px-2 border-none bg-white dark:bg-slate-800 w-full"
+                    onchange="savePrefs()"
+                  >
+                    <option value="PHYSICAL">Physical (QR)</option>
+                    <option value="ONLINE">Online (GPS)</option>
+                    <option value="HYBRID">Hybrid (Both)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="w-full">
+                <label
+                  class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4"
+                  >Display Theme</label
+                >
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onclick="setTheme('light')"
+                    class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-100 dark:border-slate-800 hover:border-gold transition-all text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 group"
+                  >
+                    <span
+                      class="material-symbols-rounded text-sm group-hover:text-gold transition-colors"
+                      >light_mode</span
+                    >
+                    Light
+                  </button>
+                  <button
+                    onclick="setTheme('dark')"
+                    class="flex-1 py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-950 text-white hover:ring-4 ring-gold/20 transition-all text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                  >
+                    <span class="material-symbols-rounded text-sm text-gold"
+                      >dark_mode</span
+                    >
+                    Dark
+                  </button>
+                </div>
+              </div>
+              <div class="w-full">
+                <label
+                  class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4"
+                  >Date Format</label
+                >
+                <div class="relative w-full">
+                  <select
+                    id="prefDate"
+                    class="input appearance-none shadow-sm h-11 py-0 px-4 w-full"
+                    onchange="savePrefs()"
+                  >
+                    <option value="MM/DD/YYYY">MM / DD / YYYY</option>
+                    <option value="DD/MM/YYYY">DD / MM / YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY - MM - DD</option>
+                  </select>
+                  <span
+                    class="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300"
+                    >expand_more</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION: DEVICE STATUS -->
+          <div
+            class="card p-6 sm:p-10 shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm animate-fade delay-400 rounded-[24px] sm:rounded-[32px]"
+          >
+            <h3
+              class="text-base sm:text-xl font-black mb-6 sm:mb-8 flex items-center gap-3 dark:text-white uppercase tracking-tight"
+            >
+              <span
+                class="material-symbols-rounded text-maroon dark:text-red-400 p-2 bg-maroon/5 dark:bg-maroon/20 rounded-xl"
+                >devices</span
+              >
+              Device Status
+            </h3>
+            <div
+              class="bg-slate-50 dark:bg-slate-950/20 p-4 sm:p-6 rounded-2xl border dark:border-slate-800"
+            >
+              <div
+                class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
+              >
+                <div
+                  class="w-12 h-12 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-md flex items-center justify-center text-maroon dark:text-gold shrink-0 border dark:border-slate-700"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 28px"
+                    >smartphone</span
+                  >
+                </div>
+                <div class="text-center sm:text-left flex-1 min-w-0 w-full">
+                  <div
+                    class="text-[10px] font-black dark:text-white mb-1 uppercase tracking-widest"
+                  >
+                    Device Fingerprint
+                  </div>
+                  <div
+                    class="text-xs text-slate-500 font-mono break-all line-clamp-2 sm:line-clamp-none overflow-hidden"
+                    id="fpDisplay"
+                  >
+                    Loading fingerprint...
+                  </div>
+                  <div
+                    class="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-4"
+                  >
+                    <div
+                      class="flex items-center gap-1.5 text-[9px] font-bold text-emerald-500 uppercase tracking-widest"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+                      ></span>
+                      Encrypted
+                    </div>
+                    <div
+                      class="text-[9px] text-slate-400 flex items-center gap-1 uppercase font-bold tracking-widest"
+                    >
+                      <span class="material-symbols-rounded text-xs"
+                        >schedule</span
+                      >
+                      Synced: <span id="syncTime">--</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GLOBAL SAVE ACTION -->
+          <div class="flex justify-end pt-4 pb-20 mt-8 relative z-10">
+            <button
+              onclick="save()"
+              class="btn-primary w-full sm:w-auto px-8 sm:px-12 h-16 rounded-[20px] shadow-lg shadow-indigo-500/20 group relative overflow-hidden flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] border border-white/20"
+            >
+              <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none group-hover:opacity-50 transition-opacity"></div>
+              <span class="material-symbols-rounded text-lg">save</span>
+              <span id="saveBtnText">Save Configuration</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+      checkAuth();
+      let user = JSON.parse(localStorage.getItem("user"));
+
+      async function syncAndInit() {
+        const freshUser = await me();
+        if (freshUser && !freshUser.error) {
+          user = freshUser;
+          initFields();
+        }
+      }
+
+      function initFields() {
+        document.getElementById("fullName").value = user.full_name || "";
+        document.getElementById("roleDisp").value = user.role.toUpperCase();
+        document.getElementById("fpDisplay").innerText = getDeviceFingerprint();
+        document.getElementById("syncTime").innerText =
+          new Date().toLocaleTimeString();
+
+        // Role Relevance Logic
+        if (user.role === "professor") {
+          document.getElementById("professorPrefs").classList.remove("hidden");
+        }
+
+        // Initialize Preferences
+        if (user.preferences) {
+          try {
+            const p =
+              typeof user.preferences === "string"
+                ? JSON.parse(user.preferences)
+                : user.preferences;
+            if (p.dateFormat)
+              document.getElementById("prefDate").value = p.dateFormat;
+            if (
+              p.qrEnlarge !== undefined &&
+              document.getElementById("prefQREnlarge")
+            )
+              document.getElementById("prefQREnlarge").checked = p.qrEnlarge;
+            if (p.attendMode && document.getElementById("prefAttendMode"))
+              document.getElementById("prefAttendMode").value = p.attendMode;
+          } catch (e) {}
+        }
+
+        update2FAUI();
+      }
+
+      // Initial fill with cached data
+      initFields();
+      // Then sync with server
+      syncAndInit();
+
+      function update2FAUI() {
+        const badge = document.getElementById("2faStatusBadge");
+        if (user.totp_enabled) {
+          document.getElementById("2faIdleArea").classList.add("hidden");
+          document.getElementById("2faEnabledArea").classList.remove("hidden");
+          badge.innerHTML = `<span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase rounded-full shadow-sm">Secured</span>`;
+        } else {
+          document.getElementById("2faIdleArea").classList.remove("hidden");
+          document.getElementById("2faEnabledArea").classList.add("hidden");
+          badge.innerHTML = `<span class="px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase rounded-full shadow-sm">Unchecked</span>`;
+        }
+      }
+
+      let current2FASecret = null;
+      async function init2FA() {
+        try {
+          const res = await generate2FA();
+          if (res.secret && res.qrcode) {
+            current2FASecret = res.secret;
+            document.getElementById("2faQR").src = res.qrcode;
+            document.getElementById("2faSecretDisplay").innerText = res.secret;
+            document.getElementById("2faIdleArea").classList.add("hidden");
+            document.getElementById("2faSetupArea").classList.remove("hidden");
+          }
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      function cancel2FA() {
+        current2FASecret = null;
+        document.getElementById("2faSetupArea").classList.add("hidden");
+        update2FAUI();
+        document.getElementById("2faCodeInput").value = "";
+      }
+
+      async function verify2FA() {
+        const code = document.getElementById("2faCodeInput").value.trim();
+        if (!code || code.length !== 6)
+          return showToast("Enter 6-digit code", "error");
+        try {
+          const res = await verify2FAEndpoint(current2FASecret, code);
+          if (res.success) {
+            showToast("2FA Activated", "success");
+            user.totp_enabled = true;
+            localStorage.setItem("user", JSON.stringify(user));
+            document.getElementById("2faSetupArea").classList.add("hidden");
+            update2FAUI();
+          } else {
+            showToast(res.error || "Invalid code", "error");
+          }
+        } catch (e) {
+          showToast("Invalid code or expired", "error");
+        }
+      }
+
+      async function disable2FA() {
+        const code = document.getElementById("disable2faCode").value.trim();
+        if (!code || code.length !== 6)
+          return showToast("Enter 6-digit code", "error");
+        try {
+          const res = await disable2FAEndpoint(code);
+          if (res.success) {
+            showToast("2FA Deactivated", "success");
+            user.totp_enabled = false;
+            localStorage.setItem("user", JSON.stringify(user));
+            document.getElementById("disable2faCode").value = "";
+            update2FAUI();
+          } else {
+            showToast(res.error || "Invalid code", "error");
+          }
+        } catch (e) {
+          showToast("Invalid code or expired", "error");
+        }
+      }
+
+      function setTheme(t) {
+        localStorage.theme = t;
+        initTheme();
+        showToast(`Theme switched to ${t.toUpperCase()}`);
+      }
+
+      async function savePrefs() {
+        const dateF = document.getElementById("prefDate").value;
+        const qre = document.getElementById("prefQREnlarge")
+          ? document.getElementById("prefQREnlarge").checked
+          : undefined;
+        const mode = document.getElementById("prefAttendMode")
+          ? document.getElementById("prefAttendMode").value
+          : undefined;
+
+        const res = await updatePreferences({
+          dateFormat: dateF,
+          qrEnlarge: qre,
+          attendMode: mode,
+        });
+        if (res && res.error) {
+          showToast("Failed to update preferences", "error");
+        } else {
+          showToast("Preferences saved");
+        }
+      }
+
+      async function save() {
+        const btnText = document.getElementById("saveBtnText");
+        const btn = btnText.closest("button");
+        const oldText = btnText.innerText;
+        const fullName = document.getElementById("fullName").value;
+        const password = document.getElementById("newPass").value;
+
+        if (password && password.length < 8)
+          return showToast("Password is too short (Min 8 characters)", "error");
+
+        btn.disabled = true;
+        btnText.innerHTML = "SAVING...";
+        // We'll also change the icon
+        const icon = btn.querySelector('.material-symbols-rounded');
+        const oldIcon = icon.innerText;
+        icon.innerText = "progress_activity";
+        icon.classList.add("animate-spin");
+
+        try {
+            const res = await updateProfile({
+            full_name: fullName,
+            password: password || undefined
+          });
+
+          if (res && res.error) {
+            showToast(res.error, "error");
+          } else {
+            showToast("Settings updated successfully!");
+
+            // Re-fetch current user instantly to sync state across the system
+            await me();
+
+            document.getElementById("newPass").value = "";
+            document.getElementById("syncTime").innerText =
+              new Date().toLocaleTimeString();
+          }
+        } catch (e) {
+          showToast("Failed to save settings", "error");
+        } finally {
+          btn.disabled = false;
+          btnText.innerText = oldText;
+          icon.innerText = oldIcon;
+          icon.classList.remove("animate-spin");
+        }
+      }
+    </script>
+  </body>
+</html>

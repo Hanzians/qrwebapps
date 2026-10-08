@@ -1,0 +1,2677 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5b1b1b" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Reports — PUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              maroon: "#800000",
+              gold: "#DAA520",
+              pup: { maroon: "#800000", gold: "#DAA520", light: "#ffb3b2", dark: "#560000" },
+              surface: { 
+                DEFAULT: 'var(--md-sys-color-surface)', 
+                container: 'var(--md-sys-color-surface-container)', 
+                highest: 'var(--md-sys-color-surface-container-highest)',
+                high: 'var(--md-sys-color-surface-container-high)',
+                low: 'var(--md-sys-color-surface-container-low)'
+              },
+              primary: { DEFAULT: 'var(--md-sys-color-primary)', on: 'var(--md-sys-color-on-primary)', container: 'var(--md-sys-color-primary-container)' },
+              secondary: { DEFAULT: 'var(--md-sys-color-secondary)', on: 'var(--md-sys-color-on-secondary)', container: 'var(--md-sys-color-secondary-container)' },
+              tertiary: { DEFAULT: 'var(--md-sys-color-tertiary)', on: 'var(--md-sys-color-on-tertiary)', container: 'var(--md-sys-color-tertiary-container)' },
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '1.75rem',
+              '4xl': '2rem',
+            },
+            boxShadow: {
+              'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+              'float': '0 8px 30px rgba(0, 0, 0, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+            }
+          },
+        },
+      };
+    </script>
+
+    <link rel="stylesheet" href="css/style.css" />
+  
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+</head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+  >
+    <div class="overlay" onclick="toggleSidebar()"></div>
+    <div
+      id="editModal"
+      class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 overflow-y-auto w-full h-full p-4"
+    >
+      <div
+        class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-modal border border-slate-200/50 dark:border-slate-700/50 relative flex flex-col m-auto"
+      >
+        <div class="px-6 py-5 flex justify-between items-center bg-indigo-50/50 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-800/30 backdrop-blur-md">
+          <h3 class="text-indigo-900 dark:text-indigo-100 font-black text-lg tracking-tight flex items-center gap-2">
+             <span class="material-symbols-rounded text-indigo-500">edit_square</span> Edit Record
+          </h3>
+          <button
+            onclick="
+              document.getElementById('editModal').classList.add('hidden')
+            "
+            class="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 w-8 h-8 rounded-full bg-white/50 dark:bg-slate-800/50 flex items-center justify-center hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <span class="material-symbols-rounded text-sm">close</span>
+          </button>
+        </div>
+        <div class="p-8 relative z-10 flex flex-col">
+          <input type="hidden" id="edit_id" />
+          <div class="mb-5">
+            <label
+              class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+              >Status</label
+            >
+            <select id="edit_status" class="input py-3 px-4 text-sm font-bold rounded-2xl w-full bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-inner">
+              <option value="PRESENT">Present</option>
+              <option value="LATE">Late</option>
+              <option value="EXCUSED">Excused</option>
+              <option value="ABSENT">Absent</option>
+            </select>
+          </div>
+          <div class="mb-6">
+            <label
+              class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
+              >Remarks</label
+            >
+            <textarea
+              id="edit_remarks"
+              class="input text-sm h-28 rounded-2xl p-4 w-full bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-inner resize-none font-medium leading-relaxed"
+              placeholder="Provide reason or context here..."
+            ></textarea>
+          </div>
+          <button onclick="saveEdit()" class="btn-primary w-full h-12 rounded-2xl text-[11px] uppercase tracking-widest font-black shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
+            <span class="material-symbols-rounded text-sm">save</span> Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="confirmModal"
+      class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-[60] p-4 transition-all duration-300"
+    >
+      <div
+        class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] shadow-2xl w-full max-w-sm overflow-hidden animate-modal border border-slate-200/50 dark:border-slate-700/50 relative"
+      >
+        <div class="absolute -right-32 -top-32 w-64 h-64 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="p-8 text-center relative z-10">
+          <div
+            class="w-16 h-16 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-[20px] flex items-center justify-center mx-auto mb-6 shadow-sm border border-red-100 dark:border-red-800/30"
+          >
+            <span class="material-symbols-rounded" style="font-size: 32px"
+              >warning</span
+            >
+          </div>
+          <h3 id="confirmTitle" class="font-black text-xl tracking-tight mb-3 dark:text-white">
+            Confirm Action
+          </h3>
+          <p
+            id="confirmMessage"
+            class="text-slate-500 dark:text-slate-400 text-[13px] leading-relaxed mb-8 font-medium"
+          >
+            Are you sure you want to proceed? This action may be irreversible.
+          </p>
+          <div class="flex gap-4">
+            <button
+              onclick="
+                document.getElementById('confirmModal').classList.add('hidden')
+              "
+              class="flex-1 px-5 py-3.5 text-slate-500 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 font-black rounded-2xl transition-all uppercase text-[10px] tracking-widest border border-slate-200/50 dark:border-slate-700/50"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirmBtn"
+              class="flex-[1.5] px-5 py-3.5 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl shadow-lg shadow-red-500/25 transition-all uppercase text-[10px] tracking-widest hover:scale-[1.02]"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="min-h-screen flex">
+      <aside
+        class="w-72 bg-maroon dark:bg-slate-950 text-white flex-col border-r border-white/5 hidden lg:flex h-[100dvh] pb-safe"
+      >
+        <div class="p-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-gold p-0.5 rounded-2xl shadow-xl rotate-3 flex items-center justify-center text-maroon"
+            >
+              <span class="material-symbols-rounded" style="font-size: 32px"
+                >school</span
+              >
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tighter leading-none">
+                PUP-SAS
+              </div>
+              <div
+                class="text-[10px] text-white/50 uppercase tracking-[.2em] mt-1 font-bold"
+              >
+                System Portal
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="flex-1 px-4 mt-8 overflow-y-auto">
+          <a href="index.html" class="nav-item group" id="nav-dash">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >dashboard</span
+            >
+            Dashboard
+          </a>
+          <a
+            href="student-profile.html"
+            class="nav-item group hidden"
+            id="nav-profile"
+          >
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >person</span
+            >
+            My Profile
+          </a>
+          <a href="calendar.html" class="nav-item group" id="nav-calendar">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >calendar_month</span
+            >
+            Calendar
+          </a>
+          <a href="scan.html" class="nav-item group" id="nav-scan">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >qr_code_scanner</span
+            >
+            Attendance Hub
+          </a>
+          <a href="reports.html" class="nav-item group" id="nav-reports">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >description</span
+            >
+            Reports
+          </a>
+          <a href="admin.html" class="nav-item group hidden" id="nav-admin">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >shield_person</span
+            >
+            Admin Panel
+          </a>
+          <a href="help.html" class="nav-item group" id="nav-help">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >help_center</span
+            >
+            Resources
+          </a>
+          <a href="settings.html" class="nav-item group" id="nav-settings">
+            <span
+              class="material-symbols-rounded p-2 bg-white/5 rounded-xl group-hover:bg-white/20 transition-colors"
+              >settings</span
+            >
+            Settings
+          </a>
+        </nav>
+        <div class="p-6 border-t border-white/5">
+          <button
+            class="install-app-btn hidden w-full flex items-center justify-center gap-3 bg-pup-gold/20 hover:bg-pup-gold/30 text-pup-gold py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <span class="material-symbols-rounded text-sm">install_mobile</span>
+            Install App
+          </button>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest"
+          >
+            <span class="material-symbols-rounded text-sm">logout</span> Sign
+            Out
+          </button>
+        </div>
+      </aside>
+
+      <main
+        class="flex-1 p-4 sm:p-8 md:p-10 h-screen overflow-y-auto animate-fade overflow-x-hidden"
+      >
+        <div
+          class="flex flex-col lg:flex-row justify-between items-end lg:items-center mb-8 gap-8 relative z-10"
+        >
+          <div class="flex items-center gap-6">
+            <button
+              onclick="toggleSidebar()"
+              class="lg:hidden text-slate-800 dark:text-slate-200 p-3 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-2xl transition-colors backdrop-blur-sm"
+            >
+              <span class="material-symbols-rounded" style="font-size: 2em"
+                >menu</span
+              >
+            </button>
+            <div class="h-16 w-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/20"></div>
+            <div>
+              <h1 class="text-4xl sm:text-5xl font-black tracking-tighter dark:text-white drop-shadow-sm flex items-center gap-4">
+                Reports <span class="material-symbols-rounded text-4xl text-indigo-500 dark:text-indigo-400 opacity-80 hidden sm:block">analytics</span>
+              </h1>
+              <div
+                class="flex mt-4 bg-white/60 dark:bg-slate-800/60 p-1.5 rounded-2xl w-fit backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-slate-700/50"
+              >
+                <button
+                  onclick="setView('log')"
+                  id="btn-log"
+                  class="px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md text-indigo-700 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30"
+                >
+                  Logs
+                </button>
+                <button
+                  onclick="setView('summary')"
+                  id="btn-summary"
+                  class="px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-700/50"
+                >
+                  Summary
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex flex-wrap gap-4 items-end justify-center lg:justify-end glass bg-white/60 dark:bg-slate-900/60 p-4 rounded-[28px] border border-slate-200/50 dark:border-slate-700/50 shadow-sm relative overflow-hidden w-full lg:w-auto"
+          >
+             <div class="absolute -left-16 -top-16 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none"></div>
+            <button
+              onclick="toggleTheme()"
+              class="w-12 h-12 rounded-2xl bg-white/80 dark:bg-slate-800/80 shadow-sm border border-slate-100 dark:border-slate-700/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-105 transition-all backdrop-blur-md self-center lg:self-end"
+            >
+              <span class="material-symbols-rounded text-xl"
+                >contrast</span
+              >
+            </button>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">school</span> Term</label
+              ><select
+                id="termFilter"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl w-36 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="filterReports()"
+              >
+                <option value="">All Academic Terms</option>
+                <option value="1st Semester">1st Sem AY 2025–2026</option>
+                <option value="2nd Semester">2nd Sem AY 2025–2026</option>
+                <option value="Midyear">Midyear Term 2026</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">event</span> From</label
+              ><input
+                type="date"
+                id="startDate"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="filterReports()"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">event</span> To</label
+              ><input
+                type="date"
+                id="endDate"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="filterReports()"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">category</span> Section</label
+              ><select
+                id="sectionFilter"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl w-32 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="filterReports()"
+              >
+                <option value="">All Sects</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">book</span> Course</label
+              ><select
+                id="courseFilter"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl w-32 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="filterReports()"
+              >
+                <option value="">All Courses</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">rule</span> Status</label
+              ><select
+                id="statusFilter"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl w-44 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="onStatusFilterDropdownChange()"
+              >
+                <option value="">All Statuses</option>
+                <option value="ABSENT">Absences (Missing Sessions)</option>
+                <option value="LATE">Latenesses (Past Threshold)</option>
+                <option value="PRESENT">Present Only</option>
+                <option value="EXCUSED">Excused Absences</option>
+                <option value="AT_RISK">At-Risk Patterns (2+ Absent / Chronic Late)</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                class="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-widest ml-1 flex items-center gap-1.5"
+                ><span class="material-symbols-rounded text-[14px]">wifi</span> Net State</label
+              ><select
+                id="continuityFilter"
+                class="input py-2.5 px-4 text-xs font-bold rounded-2xl w-32 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 focus:ring-indigo-500 shadow-inner"
+                onchange="filterReports()"
+              >
+                <option value="">Any State</option>
+                <option value="Stable">Stable</option>
+                <option value="Reconnected">Reconnected</option>
+                <option value="Interrupted">Interrupted</option>
+              </select>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto h-full self-end border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0 no-print">
+              <button
+                id="btn-print-report"
+                onclick="window.print()"
+                class="bg-slate-800 hover:bg-slate-900 text-white border border-transparent rounded-2xl px-4 h-12 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:scale-[1.02]"
+                title="Print Official Report (@media print)"
+              >
+                <span class="material-symbols-rounded text-base">print</span>
+                Print
+              </button>
+              <button
+                id="btn-export-xls"
+                onclick="downloadExcel()"
+                class="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border border-emerald-200/50 dark:border-emerald-800/50 rounded-2xl px-4 h-12 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+              >
+                <span class="material-symbols-rounded text-base">table_view</span>
+                XLS
+              </button>
+              <button
+                id="btn-export-pdf"
+                onclick="downloadPDF()"
+                class="bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-200/50 dark:border-rose-800/50 rounded-2xl px-4 h-12 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+              >
+                <span class="material-symbols-rounded text-base">picture_as_pdf</span>
+                PDF
+              </button>
+              <button
+                id="btn-export-audit"
+                onclick="downloadFullAuditPDF()"
+                class="bg-indigo-500 hover:bg-indigo-600 text-white border border-transparent rounded-2xl px-5 h-12 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 shadow-indigo-500/20"
+              >
+                <span class="material-symbols-rounded text-base">library_books</span>
+                Full Audit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Filter Multi-Select Bar -->
+        <div class="no-print flex flex-wrap items-center gap-2 mb-6 p-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm relative z-10">
+          <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-2 mr-1 flex items-center gap-1">
+            <span class="material-symbols-rounded text-sm text-indigo-500">tune</span> Filter View (Multi-Select):
+          </span>
+          <button onclick="setQuickFilter('')" id="qf-all" class="qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-indigo-500 text-white shadow-sm flex items-center gap-1.5 ring-2 ring-indigo-400/40">
+            <span class="material-symbols-rounded text-xs">select_all</span> All Records <span id="qf-cnt-all" class="px-1.5 py-0.2 rounded-md bg-white/20 text-[9px] font-mono">0</span>
+          </button>
+          <button onclick="setQuickFilter('ABSENT')" id="qf-absent" class="qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-1.5" title="Click to toggle Absences into active filter">
+            <span class="qf-icon">🚨</span> Absences <span id="qf-cnt-absent" class="px-1.5 py-0.2 rounded-md bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[9px] font-mono">0</span>
+          </button>
+          <button onclick="setQuickFilter('LATE')" id="qf-late" class="qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-1.5" title="Click to toggle Latenesses into active filter">
+            <span class="qf-icon">⏰</span> Latenesses <span id="qf-cnt-late" class="px-1.5 py-0.2 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[9px] font-mono">0</span>
+          </button>
+          <button onclick="setQuickFilter('PRESENT')" id="qf-present" class="qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-1.5" title="Click to toggle Present into active filter">
+            <span class="qf-icon">✓</span> Present <span id="qf-cnt-present" class="px-1.5 py-0.2 rounded-md bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[9px] font-mono">0</span>
+          </button>
+          <button onclick="setQuickFilter('EXCUSED')" id="qf-excused" class="qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-1.5" title="Click to toggle Excused into active filter">
+            <span class="qf-icon">📋</span> Excused <span id="qf-cnt-excused" class="px-1.5 py-0.2 rounded-md bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 text-[9px] font-mono">0</span>
+          </button>
+          <button onclick="setQuickFilter('AT_RISK')" id="qf-atrisk" class="qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-1.5" title="Click to toggle At-Risk patterns into active filter">
+            <span class="qf-icon">⚠️</span> At-Risk Patterns <span id="qf-cnt-atrisk" class="px-1.5 py-0.2 rounded-md bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[9px] font-mono">0</span>
+          </button>
+        </div>
+
+        <div
+          id="aiSummary"
+          class="hidden animate-fade relative z-10 bg-indigo-50/50 dark:bg-indigo-950/20 backdrop-blur-md border border-indigo-200/50 dark:border-indigo-800/30 p-6 rounded-[32px] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm overflow-hidden"
+        >
+          <div class="absolute -right-16 -bottom-16 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="flex items-center gap-5 relative z-10 w-full md:w-auto">
+            <div
+              class="w-14 h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl flex items-center justify-center text-indigo-500 border border-slate-100 dark:border-slate-800 shrink-0 shadow-sm"
+            >
+              <span class="material-symbols-rounded animate-pulse text-2xl"
+                >auto_awesome</span
+              >
+            </div>
+            <div class="flex-1">
+              <div
+                class="font-black text-indigo-900 dark:text-indigo-300 text-[10px] uppercase tracking-widest flex items-center gap-1.5"
+              >
+                Intelligent Insight <span class="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-[8px] tracking-widest uppercase font-black text-indigo-600 dark:text-indigo-400">Beta</span>
+              </div>
+              <div
+                class="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1 leading-relaxed max-w-xl"
+                id="aiText"
+              >
+                Analyzing historical patterns...
+              </div>
+            </div>
+          </div>
+          <div class="text-left md:text-right w-full md:w-auto bg-white/40 dark:bg-slate-900/40 p-4 rounded-2xl border border-white/50 dark:border-slate-700/30 relative z-10 shrink-0">
+            <div
+              class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center md:justify-end gap-1.5 mb-1"
+            >
+              <span class="material-symbols-rounded text-[14px]">insights</span> Attendance Prob
+            </div>
+            <div
+              class="text-4xl font-black text-indigo-900 dark:text-indigo-200 tracking-tighter"
+              id="aiProj"
+            >
+              --%
+            </div>
+          </div>
+        </div>
+
+        <div id="reportsAnalytics" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade relative z-10">
+          <div id="kpi-card-present" onclick="setQuickFilter('PRESENT')" class="cursor-pointer glass bg-emerald-50/80 dark:bg-emerald-950/40 p-5 rounded-[24px] shadow-sm border border-emerald-200/50 dark:border-emerald-800/50 flex flex-col justify-center relative overflow-hidden group hover:scale-[1.02] transition-all" title="Click to filter or combine Present in attendance view">
+             <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-colors pointer-events-none"></div>
+             <div class="z-10 relative">
+               <p class="text-[10px] font-black uppercase tracking-widest text-emerald-800/70 dark:text-emerald-300 flex items-center justify-between mb-2">
+                 <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">check_circle</span> Present</span>
+                 <span class="font-mono text-xs" id="ra_present_cnt">0</span>
+               </p>
+               <h3 class="text-3xl sm:text-4xl font-black text-emerald-900 dark:text-emerald-400 tracking-tighter" id="ra_att_rate">0%</h3>
+               <span class="text-[9px] font-semibold text-emerald-700/60 dark:text-emerald-400/60 mt-1 block">Students logged on schedule</span>
+             </div>
+          </div>
+          <div id="kpi-card-late" onclick="setQuickFilter('LATE')" class="cursor-pointer glass bg-amber-50/80 dark:bg-amber-950/40 p-5 rounded-[24px] shadow-sm border border-amber-300/50 dark:border-amber-700/50 flex flex-col justify-center relative overflow-hidden group hover:scale-[1.02] transition-all" title="Click to filter or combine Late in attendance view">
+             <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-colors pointer-events-none"></div>
+             <div class="z-10 relative">
+               <p class="text-[10px] font-black uppercase tracking-widest text-amber-800/70 dark:text-amber-300 flex items-center justify-between mb-2">
+                 <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">schedule</span> Late</span>
+                 <span class="font-mono text-xs" id="ra_late_cnt">0</span>
+               </p>
+               <h3 class="text-3xl sm:text-4xl font-black text-amber-900 dark:text-amber-400 tracking-tighter" id="ra_late_rate">0%</h3>
+               <span class="text-[9px] font-semibold text-amber-700/60 dark:text-amber-400/60 mt-1 block">Past late tolerance threshold</span>
+             </div>
+          </div>
+          <div id="kpi-card-absent" onclick="setQuickFilter('ABSENT')" class="cursor-pointer glass bg-rose-50/80 dark:bg-rose-950/40 p-5 rounded-[24px] shadow-sm border border-rose-200/50 dark:border-rose-800/50 flex flex-col justify-center relative overflow-hidden group hover:scale-[1.02] transition-all" title="Click to filter or combine Absences in attendance view">
+             <div class="absolute -right-4 -top-4 w-20 h-20 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-colors pointer-events-none"></div>
+             <div class="z-10 relative">
+               <p class="text-[10px] font-black uppercase tracking-widest text-rose-800/70 dark:text-rose-300 flex items-center justify-between mb-2">
+                 <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">person_off</span> Absent</span>
+                 <span class="font-mono text-xs" id="ra_absent_cnt">0</span>
+               </p>
+               <h3 class="text-3xl sm:text-4xl font-black text-rose-900 dark:text-rose-400 tracking-tighter" id="ra_abs_rate">0%</h3>
+               <span class="text-[9px] font-semibold text-rose-700/60 dark:text-rose-400/60 mt-1 block">Missing from assigned session</span>
+             </div>
+          </div>
+          <div id="kpi-card-excused" onclick="setQuickFilter('EXCUSED')" class="cursor-pointer glass bg-blue-50/80 dark:bg-blue-950/40 p-5 rounded-[24px] shadow-sm border border-blue-200/50 dark:border-blue-800/50 flex flex-col justify-center relative overflow-hidden group hover:scale-[1.02] transition-all" title="Click to filter or combine Excused in attendance view">
+             <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-colors pointer-events-none"></div>
+             <div class="z-10 relative">
+               <p class="text-[10px] font-black uppercase tracking-widest text-blue-800/70 dark:text-blue-300 flex items-center justify-between mb-2">
+                 <span class="flex items-center gap-1.5"><span class="material-symbols-rounded text-[14px]">assignment_turned_in</span> Excused</span>
+                 <span class="font-mono text-xs" id="ra_excused_cnt">0</span>
+               </p>
+               <h3 class="text-3xl sm:text-4xl font-black text-blue-900 dark:text-blue-400 tracking-tighter" id="ra_ex_rate">0%</h3>
+               <span class="text-[9px] font-semibold text-blue-700/60 dark:text-blue-400/60 mt-1 block">Documented medical / approved</span>
+             </div>
+          </div>
+
+          <!-- Interactive Graphical Pie / Donut Chart Component -->
+          <div class="col-span-2 lg:col-span-4 glass bg-white/70 dark:bg-slate-900/70 p-6 sm:p-8 rounded-[28px] shadow-sm border border-slate-200/50 dark:border-slate-800/50 relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded text-lg text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 p-1.5 rounded-lg">pie_chart</span>
+                <div>
+                  <h3 id="pieChartHeading" class="font-black text-sm uppercase tracking-wider text-slate-800 dark:text-white">Attendance Distribution</h3>
+                  <p id="pieChartSubheading" class="text-[10px] font-medium text-slate-400">Interactive categorical proportional breakdown</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold text-slate-400 font-mono" id="pieChartTotalLogs">0 Logs</span>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-around gap-8 my-auto">
+              <div class="relative w-48 h-48 sm:w-56 sm:h-56 shrink-0 flex items-center justify-center">
+                <canvas id="attendancePieCtx"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500" id="pieCenterLabel">Attendance</span>
+                  <span class="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tighter" id="pieCenterRate">0%</span>
+                  <span class="text-[9px] font-bold text-slate-400" id="pieCenterSub">Present Rate</span>
+                </div>
+              </div>
+              <div class="w-full flex-1 max-w-xl space-y-2.5" id="pieBreakdownLegend">
+                <div id="pieLegPresent" onclick="setQuickFilter('PRESENT')" class="group cursor-pointer flex items-center justify-between p-2.5 rounded-xl hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all border border-transparent hover:border-emerald-200/50" title="Click to toggle Present in attendance filter view">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Present</span>
+                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 ml-1">Filter</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="font-mono text-xs font-black text-emerald-600 dark:text-emerald-400" id="pieLegPresentVal">0 (0%)</span>
+                    <span class="material-symbols-rounded text-sm text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" id="pieLegPresentEye">filter_alt</span>
+                  </div>
+                </div>
+                <div id="pieLegLate" onclick="setQuickFilter('LATE')" class="group cursor-pointer flex items-center justify-between p-2.5 rounded-xl hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all border border-transparent hover:border-amber-200/50" title="Click to toggle Late in attendance filter view">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Late</span>
+                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 ml-1">Filter</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="font-mono text-xs font-black text-amber-600 dark:text-amber-400" id="pieLegLateVal">0 (0%)</span>
+                    <span class="material-symbols-rounded text-sm text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" id="pieLegLateEye">filter_alt</span>
+                  </div>
+                </div>
+                <div id="pieLegAbsent" onclick="setQuickFilter('ABSENT')" class="group cursor-pointer flex items-center justify-between p-2.5 rounded-xl hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all border border-transparent hover:border-rose-200/50" title="Click to toggle Absent in attendance filter view">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-rose-500 shrink-0"></span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Absent</span>
+                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 ml-1">Filter</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="font-mono text-xs font-black text-rose-600 dark:text-rose-400" id="pieLegAbsentVal">0 (0%)</span>
+                    <span class="material-symbols-rounded text-sm text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors" id="pieLegAbsentEye">filter_alt</span>
+                  </div>
+                </div>
+                <div id="pieLegExcused" onclick="setQuickFilter('EXCUSED')" class="group cursor-pointer flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all border border-transparent hover:border-blue-200/50" title="Click to toggle Excused in attendance filter view">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-blue-500 shrink-0"></span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Excused</span>
+                    <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 ml-1">Filter</span>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="font-mono text-xs font-black text-blue-600 dark:text-blue-400" id="pieLegExcusedVal">0 (0%)</span>
+                    <span class="material-symbols-rounded text-sm text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" id="pieLegExcusedEye">filter_alt</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="text-[9px] text-slate-400 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-center sm:text-left flex items-center justify-between">
+              <span>Hover slices for student counts &amp; percentages · Click legend items to toggle filters · Multi-select supported</span>
+              <span class="font-mono text-[9px] text-indigo-500 font-bold hidden sm:inline">Active Multi-Selection Showcase</span>
+            </div>
+          </div>
+
+
+        </div>
+
+        <!-- Standardized Institutional Report Header Banner -->
+        <div id="officialReportHeader" class="card bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[28px] p-6 mb-6 shadow-sm relative z-10">
+          <div class="flex flex-col sm:flex-row items-center justify-between pb-5 border-b border-slate-200 dark:border-slate-800 gap-4 text-center sm:text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-maroon rounded-2xl flex items-center justify-center text-gold shadow-md shrink-0 border border-gold/30">
+                <span class="material-symbols-rounded text-3xl">school</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-black tracking-widest uppercase text-pup-maroon dark:text-pup-light">Republic of the Philippines</div>
+                <h2 class="text-base sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Polytechnic University of the Philippines</h2>
+                <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Parañaque Campus · Office of the University Registrar & Academic Affairs</div>
+              </div>
+            </div>
+            <div class="text-right sm:border-l sm:border-slate-200 sm:dark:border-slate-800 sm:pl-6">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-maroon/10 text-maroon dark:bg-pup-light/10 dark:text-pup-light border border-maroon/20">
+                Official Attendance Record
+              </span>
+              <div class="text-[10px] font-mono text-slate-400 mt-1" id="hdrDocHash">PUP-SAS-2026-COMPLIANCE</div>
+            </div>
+          </div>
+
+          <!-- Metadata Parameters Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-5 text-xs">
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Academic Term</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 text-sm" id="hdrTerm">1st Semester AY 2025–2026</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Course / Subject</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 text-sm truncate" id="hdrCourse">All Courses</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Program & Section</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 text-sm" id="hdrSection">All Sections</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Instructor / Faculty</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 text-sm" id="hdrFaculty">Prof. Jefferson Costales</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Reporting Period</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px]" id="hdrPeriod">All Logged Records</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Date Generated</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px]" id="hdrGenerated">--</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Filter Mode</div>
+              <div class="font-bold text-indigo-600 dark:text-indigo-400 text-sm" id="hdrFilterStatus">All Statuses</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Filtered Logs</div>
+              <div class="font-black text-slate-900 dark:text-white text-base font-mono tabular-nums" id="hdrRecordCount">0 Records</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card glass p-0 overflow-hidden shadow-sm border border-slate-200/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 rounded-[32px] relative z-10">
+          <div class="table-container bg-transparent rounded-none">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-sm border-b border-slate-100 dark:border-slate-700/50">
+                <tr
+                  id="tableHead"
+                  class="font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400"
+                ></tr>
+              </thead>
+              <tbody
+                id="reportTable"
+                class="text-sm dark:text-slate-300 divide-y divide-slate-100/50 dark:divide-slate-800/50"
+              >
+                <tr>
+                  <td class="p-24 text-center text-slate-400 font-black tracking-widest text-xs uppercase" colspan="7">
+                    <div class="flex flex-col items-center justify-center gap-3">
+                      <span class="material-symbols-rounded text-4xl opacity-30 animate-pulse">sync</span>
+                      Loading reports...
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Official Institutional Signatures & Compliance Certification Section -->
+        <div class="signature-section card bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[28px] p-6 sm:p-8 mt-6 shadow-sm relative z-10">
+          <div class="flex items-center justify-between pb-6 mb-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-rounded text-base text-pup-maroon dark:text-pup-gold">verified</span>
+              <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Official Document Certification & Signatures</span>
+            </div>
+            <span class="text-[10px] font-mono text-slate-400">CHED Memorandum Order No. 40 Standard</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center pt-2">
+            <div class="flex flex-col items-center">
+              <div class="w-56 border-b-2 border-slate-800 dark:border-slate-300 pb-1 mb-2 min-h-[32px] flex items-end justify-center">
+                <span class="font-black text-sm uppercase text-slate-900 dark:text-white" id="sigInstructor">Prof. Jefferson Costales</span>
+              </div>
+              <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Course Instructor / Faculty</div>
+              <div class="text-[10px] text-slate-400 mt-1">Date: ________________________</div>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="w-56 border-b-2 border-slate-800 dark:border-slate-300 pb-1 mb-2 min-h-[32px] flex items-end justify-center">
+                <span class="font-black text-sm uppercase text-slate-900 dark:text-white">Dr. Enrico R. Reyes</span>
+              </div>
+              <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Department Chairperson / Academic Head</div>
+              <div class="text-[10px] text-slate-400 mt-1">Date: ________________________</div>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="w-56 border-b-2 border-slate-800 dark:border-slate-300 pb-1 mb-2 min-h-[32px] flex items-end justify-center">
+                <span class="font-black text-sm uppercase text-slate-900 dark:text-white">Dr. Manuel M. Aguinaldo</span>
+              </div>
+              <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Campus Director / Academic Affairs</div>
+              <div class="text-[10px] text-slate-400 mt-1">Date: ________________________</div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-400 font-mono gap-2">
+            <div>Document Footprint: SHA-256 Verified · Official University Attendance Record</div>
+            <div id="sigFooterTimestamp">Generated via PUP-SAS System Portal</div>
+          </div>
+        </div>
+      </main>
+      
+      <!-- Private Note Modal -->
+      <div id="privateNoteModal" class="fixed inset-0 bg-black/40 hidden backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
+        <div class="card glass bg-white/95 dark:bg-slate-900/95 rounded-[32px] max-w-lg w-full border border-slate-200/50 dark:border-slate-700/50 shadow-2xl p-6 relative animate-modal flex flex-col">
+          <div class="absolute -right-32 -bottom-32 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="flex items-start gap-4 mb-4 relative z-10">
+             <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center rounded-[16px] border border-indigo-100 dark:border-indigo-800/30 shadow-sm shrink-0">
+               <span class="material-symbols-rounded">edit_note</span>
+             </div>
+             <div class="flex-1 mt-1">
+                <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight leading-none">Private Note</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5" id="pn_student_name">Student Name</p>
+             </div>
+             <button onclick="closeNoteModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                <span class="material-symbols-rounded text-sm">close</span>
+             </button>
+          </div>
+          
+          <div class="bg-amber-50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-800/30 p-3 rounded-2xl flex gap-3 mb-4 shadow-sm relative z-10">
+              <span class="material-symbols-rounded text-amber-500 text-lg">lock</span>
+              <p class="text-[10px] uppercase tracking-widest font-black text-amber-700 dark:text-amber-400 mt-0.5">This note is strictly private. Only you can view this.</p>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto custom-scrollbar mb-4 space-y-3 pr-1 relative z-10 max-h-48" id="pn_notes_list">
+             <div class="text-center p-6 text-slate-400 text-[10px] font-black uppercase tracking-widest">Loading notes...</div>
+          </div>
+          
+          <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 relative z-10">
+             <textarea id="pn_new_text" rows="3" placeholder="Add a new private note context..." class="input w-full bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl p-4 text-sm font-medium focus:bg-white dark:focus:bg-slate-900 shadow-inner mb-3 resize-none leading-relaxed"></textarea>
+             
+             <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+                 <button onclick="selectNoteTag(this, 'Attendance Concern')" class="pn-tag-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200/50 dark:border-slate-700/50 shadow-sm whitespace-nowrap transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">Attendance Concern</button>
+                 <button onclick="selectNoteTag(this, 'Medical')" class="pn-tag-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200/50 dark:border-slate-700/50 shadow-sm whitespace-nowrap transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">Medical</button>
+                 <button onclick="selectNoteTag(this, 'Excused Context')" class="pn-tag-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200/50 dark:border-slate-700/50 shadow-sm whitespace-nowrap transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">Excused Context</button>
+             </div>
+             
+             <button onclick="submitNewNote()" class="btn-primary w-full h-12 rounded-2xl text-[11px] uppercase tracking-widest font-black shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
+                 <span class="material-symbols-rounded text-sm">add</span> Save Note
+             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/attendance_rules.js"></script>
+    <script>
+      checkAuth();
+      let allLogs = [],
+        courses = [],
+        currentView = "log",
+        currentFilteredLogs = [],
+        activeStatusFilters = new Set();
+      let cachedStudentLogMap = {};
+      let cachedStudentPatternMap = {};
+      let cachedAtRiskKeys = new Set();
+
+      function refreshStudentLogCache() {
+        cachedStudentLogMap = {};
+        cachedStudentPatternMap = {};
+        cachedAtRiskKeys = new Set();
+
+        allLogs.forEach(l => {
+          const key = (l.student_name || l.student_username || "unknown") + "_" + (l.course_code || "course");
+          if (!cachedStudentLogMap[key]) {
+            cachedStudentLogMap[key] = [];
+            cachedStudentPatternMap[key] = { absCount: 0, lateCount: 0 };
+          }
+          cachedStudentLogMap[key].push(l);
+          if (l.status === "ABSENT") cachedStudentPatternMap[key].absCount++;
+          else if (l.status === "LATE") cachedStudentPatternMap[key].lateCount++;
+        });
+
+        Object.keys(cachedStudentPatternMap).forEach(key => {
+          const p = cachedStudentPatternMap[key];
+          if (p.absCount >= 2 || p.lateCount >= 3) {
+            cachedAtRiskKeys.add(key);
+          }
+        });
+      }
+
+      function getSurname(name) {
+        if (!name) return "";
+        if (name.includes(",")) return name.split(",")[0].trim().toLowerCase();
+        const parts = name.trim().split(" ");
+        return parts[parts.length - 1].toLowerCase();
+      }
+      
+      async function init() {
+        const [coursesData, logsData] = await Promise.all([
+          fetchCourses().catch(() => []),
+          fetchAttendance().catch(() => [])
+        ]);
+        courses = coursesData && !coursesData.error ? coursesData : [];
+        allLogs = logsData && !logsData.error ? logsData : [];
+
+        allLogs.sort((a, b) => {
+          const nameA = a.student_name || a.student_username || "";
+          const nameB = b.student_name || b.student_username || "";
+          return getSurname(nameA).localeCompare(getSurname(nameB));
+        });
+
+        refreshStudentLogCache();
+
+        document.getElementById("courseFilter").innerHTML += courses
+          .map((x) => `<option value="${x.code}">${x.code}</option>`)
+          .join("");
+        
+        let sections = [...new Set(allLogs.map(l => l.student_section).filter(Boolean))].sort();
+        document.getElementById("sectionFilter").innerHTML += sections
+          .map((x) => `<option value="${x}">${x}</option>`)
+          .join("");
+          
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('course')) {
+          const c = urlParams.get('course');
+          const select = document.getElementById("courseFilter");
+          if (![...select.options].some(o => o.value === c)) {
+            select.innerHTML += `<option value="${c}">${c}</option>`;
+          }
+          select.value = c;
+        }
+        if (urlParams.has('date')) {
+          document.getElementById("startDate").value = urlParams.get('date');
+          document.getElementById("endDate").value = urlParams.get('date');
+        }
+        if (urlParams.has('session_id')) {
+          window._forceSessionIdFilter = urlParams.get('session_id');
+        }
+        if (urlParams.has('status')) {
+          const s = urlParams.get('status');
+          if (s) activeStatusFilters.add(s);
+          updateQuickFilterButtonsUI();
+        }
+        
+        // Initialize pie chart
+        initPieChart();
+        await filterReports();
+        
+        if (urlParams.has('auto_export')) {
+          const type = urlParams.get('auto_export');
+          if (type === 'pdf') {
+            downloadPDF();
+          } else if (type === 'excel') {
+            downloadExcel();
+          } else if (type === 'audit') {
+            downloadFullAuditPDF();
+          }
+        }
+      }
+
+      function setView(v) {
+        currentView = v;
+        const activeClass = "px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md text-indigo-700 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30";
+        const inactiveClass = "px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all text-slate-500 dark:text-slate-400 hover:text-indigo-600 border border-transparent";
+        document.getElementById("btn-log").className = v === "log" ? activeClass : inactiveClass;
+        document.getElementById("btn-summary").className = v === "summary" ? activeClass : inactiveClass;
+        filterReports();
+      }
+
+      function setQuickFilter(status) {
+        if (!status || status === 'ALL') {
+          activeStatusFilters.clear();
+        } else {
+          if (activeStatusFilters.has(status)) {
+            activeStatusFilters.delete(status);
+          } else {
+            activeStatusFilters.add(status);
+          }
+        }
+        updateQuickFilterButtonsUI();
+        filterReports();
+      }
+
+      function updateQuickFilterButtonsUI() {
+        const hasFilters = activeStatusFilters.size > 0;
+        const allBtn = document.getElementById("qf-all");
+        if (allBtn) {
+          if (!hasFilters) {
+            allBtn.className = "qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-indigo-500 text-white shadow-sm flex items-center gap-1.5 ring-2 ring-indigo-400/40";
+          } else {
+            allBtn.className = "qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-1.5";
+          }
+        }
+
+        const qfButtons = [
+          { id: "qf-absent", val: "ABSENT", activeBg: "bg-rose-500 text-white shadow-sm ring-2 ring-rose-400/40 font-black", hover: "hover:bg-rose-50 hover:text-rose-700" },
+          { id: "qf-late", val: "LATE", activeBg: "bg-amber-500 text-white shadow-sm ring-2 ring-amber-400/40 font-black", hover: "hover:bg-amber-50 hover:text-amber-700" },
+          { id: "qf-present", val: "PRESENT", activeBg: "bg-emerald-500 text-white shadow-sm ring-2 ring-emerald-400/40 font-black", hover: "hover:bg-emerald-50 hover:text-emerald-700" },
+          { id: "qf-excused", val: "EXCUSED", activeBg: "bg-blue-500 text-white shadow-sm ring-2 ring-blue-400/40 font-black", hover: "hover:bg-blue-50 hover:text-blue-700" },
+          { id: "qf-atrisk", val: "AT_RISK", activeBg: "bg-purple-600 text-white shadow-sm ring-2 ring-purple-400/40 font-black", hover: "hover:bg-purple-50 hover:text-purple-700" }
+        ];
+
+        qfButtons.forEach(b => {
+          const el = document.getElementById(b.id);
+          if (!el) return;
+          if (activeStatusFilters.has(b.val)) {
+            el.className = `qf-btn px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider transition-all ${b.activeBg} flex items-center gap-1.5`;
+          } else {
+            el.className = `qf-btn px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 ${b.hover} flex items-center gap-1.5`;
+          }
+        });
+
+        // Top KPI cards highlight when corresponding status is active
+        const kpiMap = [
+          { id: "kpi-card-present", val: "PRESENT", ringClass: "ring-emerald-500" },
+          { id: "kpi-card-late", val: "LATE", ringClass: "ring-amber-500" },
+          { id: "kpi-card-absent", val: "ABSENT", ringClass: "ring-rose-500" },
+          { id: "kpi-card-excused", val: "EXCUSED", ringClass: "ring-blue-500" }
+        ];
+        kpiMap.forEach(k => {
+          const el = document.getElementById(k.id);
+          if (!el) return;
+          if (activeStatusFilters.has(k.val)) {
+            el.classList.add("ring-2", k.ringClass, "shadow-md");
+          } else {
+            el.classList.remove("ring-2", k.ringClass, "shadow-md");
+          }
+        });
+
+        const select = document.getElementById("statusFilter");
+        if (select) {
+          if (activeStatusFilters.size === 0) {
+            select.value = "";
+          } else if (activeStatusFilters.size === 1) {
+            select.value = Array.from(activeStatusFilters)[0];
+          } else {
+            select.value = "";
+          }
+        }
+      }
+
+      function onStatusFilterDropdownChange() {
+        const val = document.getElementById("statusFilter").value;
+        if (val) {
+          activeStatusFilters.clear();
+          activeStatusFilters.add(val);
+        } else {
+          activeStatusFilters.clear();
+        }
+        updateQuickFilterButtonsUI();
+        filterReports();
+      }
+
+      function getContinuityBadge(mode, status, reason) {
+        if (mode !== "ONLINE" && mode !== "HYBRID") {
+          return `<span class="text-xs text-slate-400 font-medium">N/A</span>`;
+        }
+        const s = status || "Stable";
+        let badge = "";
+        if (s === "Stable") {
+          badge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30">🟢 Stable</span>`;
+        } else if (s === "Temporarily Interrupted") {
+          badge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30">🟡 Temp Unstable</span>`;
+        } else if (s === "Reconnected") {
+          badge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-400 border border-teal-200/50 dark:border-teal-800/30">🟢 Reconnected</span>`;
+        } else if (s === "Interrupted") {
+          badge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/30">🔴 Interrupted</span>`;
+        } else {
+          badge = `<span class="text-xs text-slate-400 font-medium">N/A</span>`;
+        }
+
+        if (reason) {
+          badge += `<div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 italic max-w-[150px] truncate" title="${reason}">Reason: "${reason}"</div>`;
+        }
+        return badge;
+      }
+
+      // --- GRAPHICAL PIE / DONUT CHART COMPONENT (MULTI-FILTER SHOWCASE) ---
+      let attendancePieChart = null;
+
+      function initPieChart() {
+        const ctx = document.getElementById("attendancePieCtx");
+        if (!ctx) return;
+        if (attendancePieChart) {
+          attendancePieChart.destroy();
+        }
+        
+        attendancePieChart = new Chart(ctx.getContext("2d"), {
+          type: "doughnut",
+          data: {
+            labels: ["Present", "Late", "Absent", "Excused"],
+            datasets: [{
+              data: [0, 0, 0, 0],
+              backgroundColor: ["#10b981", "#f59e0b", "#f43f5e", "#3b82f6"],
+              borderColor: ["#ffffff", "#ffffff", "#ffffff", "#ffffff"],
+              borderWidth: 2,
+              hoverOffset: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 300 },
+            cutout: "70%",
+            onClick: (event, elements) => {
+              if (elements && elements.length > 0 && attendancePieChart) {
+                const idx = elements[0].index;
+                const label = attendancePieChart.data.labels[idx];
+                const labelMap = {
+                  "Present": "PRESENT",
+                  "Late": "LATE",
+                  "Absent": "ABSENT",
+                  "Excused": "EXCUSED"
+                };
+                if (labelMap[label]) {
+                  setQuickFilter(labelMap[label]);
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: "rgba(15, 23, 42, 0.95)",
+                titleFont: { size: 12, family: "'Inter', sans-serif", weight: "bold" },
+                bodyFont: { size: 12, family: "'JetBrains Mono', monospace" },
+                padding: 12,
+                cornerRadius: 12,
+                callbacks: {
+                  label: function(context) {
+                    const val = context.raw || 0;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0) || 1;
+                    const pct = ((val / total) * 100).toFixed(1);
+                    return ` ${context.label}: ${val} Students (${pct}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function updatePieChart(filteredLogs, baseLogsForCounts) {
+        // Compute counts from baseLogs (all logs matching current course/term/date/section)
+        const base = (baseLogsForCounts && baseLogsForCounts.length > 0) ? baseLogsForCounts : allLogs;
+        let basePresent = 0, baseLate = 0, baseAbsent = 0, baseExcused = 0;
+        base.forEach(l => {
+          if (l.status === "PRESENT") basePresent++;
+          else if (l.status === "LATE") baseLate++;
+          else if (l.status === "ABSENT") baseAbsent++;
+          else if (l.status === "EXCUSED") baseExcused++;
+        });
+        const baseTotal = basePresent + baseLate + baseAbsent + baseExcused;
+        const pPctBase = baseTotal ? ((basePresent / baseTotal) * 100).toFixed(1) : 0;
+        const lPctBase = baseTotal ? ((baseLate / baseTotal) * 100).toFixed(1) : 0;
+        const aPctBase = baseTotal ? ((baseAbsent / baseTotal) * 100).toFixed(1) : 0;
+        const ePctBase = baseTotal ? ((baseExcused / baseTotal) * 100).toFixed(1) : 0;
+
+        // Compute counts from the current active filtered subset (f)
+        let present = 0, late = 0, absent = 0, excused = 0;
+        (filteredLogs || []).forEach(l => {
+          if (l.status === "PRESENT") present++;
+          else if (l.status === "LATE") late++;
+          else if (l.status === "ABSENT") absent++;
+          else if (l.status === "EXCUSED") excused++;
+        });
+        const filteredTotal = present + late + absent + excused;
+
+        // Update KPI card rates & counts (always reflect base counts for full institutional awareness)
+        document.getElementById("ra_att_rate").innerText = `${pPctBase}%`;
+        document.getElementById("ra_present_cnt").innerText = `${basePresent} logs`;
+        document.getElementById("ra_late_rate").innerText = `${lPctBase}%`;
+        document.getElementById("ra_late_cnt").innerText = `${baseLate} logs`;
+        document.getElementById("ra_abs_rate").innerText = `${aPctBase}%`;
+        document.getElementById("ra_absent_cnt").innerText = `${baseAbsent} logs`;
+        document.getElementById("ra_ex_rate").innerText = `${ePctBase}%`;
+        document.getElementById("ra_excused_cnt").innerText = `${baseExcused} logs`;
+
+        // Check if multi-filtering is active
+        const isMultiFiltered = activeStatusFilters.size > 0 && !activeStatusFilters.has("ALL");
+
+        // Categories metadata map
+        const categoryMap = {
+          PRESENT: { label: "Present", count: present, baseCount: basePresent, color: "#10b981", legId: "pieLegPresent", valId: "pieLegPresentVal", statusKey: "PRESENT" },
+          LATE: { label: "Late", count: late, baseCount: baseLate, color: "#f59e0b", legId: "pieLegLate", valId: "pieLegLateVal", statusKey: "LATE" },
+          ABSENT: { label: "Absent", count: absent, baseCount: baseAbsent, color: "#f43f5e", legId: "pieLegAbsent", valId: "pieLegAbsentVal", statusKey: "ABSENT" },
+          EXCUSED: { label: "Excused", count: excused, baseCount: baseExcused, color: "#3b82f6", legId: "pieLegExcused", valId: "pieLegExcusedVal", statusKey: "EXCUSED" }
+        };
+
+        let showcasedCategories = [];
+        if (!isMultiFiltered) {
+          // All records: showcase all 4 categories
+          showcasedCategories = [categoryMap.PRESENT, categoryMap.LATE, categoryMap.ABSENT, categoryMap.EXCUSED];
+        } else if (activeStatusFilters.has("AT_RISK")) {
+          // At-Risk Pattern: showcase statuses present in at-risk logs
+          showcasedCategories = [categoryMap.PRESENT, categoryMap.LATE, categoryMap.ABSENT, categoryMap.EXCUSED].filter(c => c.count > 0 || activeStatusFilters.has(c.statusKey));
+          if (showcasedCategories.length === 0) showcasedCategories = [categoryMap.PRESENT, categoryMap.LATE, categoryMap.ABSENT, categoryMap.EXCUSED];
+        } else {
+          // Specific multiple (or single) status filters: DYNAMICALLY SHOWCASE EXACTLY THE SELECTED STATUSES!
+          showcasedCategories = [categoryMap.PRESENT, categoryMap.LATE, categoryMap.ABSENT, categoryMap.EXCUSED].filter(c => activeStatusFilters.has(c.statusKey));
+          if (showcasedCategories.length === 0) showcasedCategories = [categoryMap.PRESENT, categoryMap.LATE, categoryMap.ABSENT, categoryMap.EXCUSED];
+        }
+
+        const showcaseSum = showcasedCategories.reduce((sum, c) => sum + c.count, 0);
+
+        // Update Pie Chart Data with showcased active categories
+        if (attendancePieChart) {
+          attendancePieChart.data.labels = showcasedCategories.map(c => c.label);
+          attendancePieChart.data.datasets[0].data = showcasedCategories.map(c => c.count);
+          attendancePieChart.data.datasets[0].backgroundColor = showcasedCategories.map(c => c.color);
+          attendancePieChart.update();
+        }
+
+        // Center rate & labels inside doughnut
+        const centerEl = document.getElementById("pieCenterRate");
+        const centerSub = document.getElementById("pieCenterSub");
+        const centerLabel = document.getElementById("pieCenterLabel");
+        if (centerEl) {
+          if (!isMultiFiltered) {
+            centerEl.innerText = `${pPctBase}%`;
+            if (centerLabel) centerLabel.innerText = "Attendance";
+            if (centerSub) centerSub.innerText = "Present Rate";
+          } else {
+            centerEl.innerText = `${filteredTotal}`;
+            if (centerLabel) centerLabel.innerText = activeStatusFilters.has("AT_RISK") ? "At-Risk" : "Filtered";
+            const names = showcasedCategories.map(c => c.label).join(" + ");
+            if (centerSub) centerSub.innerText = names.length > 20 ? `${names.substring(0, 18)}...` : names;
+          }
+        }
+
+        // Update Total logs counter
+        const totalLogsBadge = document.getElementById("pieChartTotalLogs");
+        if (totalLogsBadge) {
+          totalLogsBadge.innerText = isMultiFiltered ? `${filteredTotal} of ${baseTotal} Logs` : `${baseTotal} Total Logs`;
+        }
+
+        // Update Title & Subtitle based on active filter state
+        const headingEl = document.getElementById("pieChartHeading");
+        const subheadEl = document.getElementById("pieChartSubheading");
+        if (headingEl && subheadEl) {
+          if (isMultiFiltered) {
+            headingEl.innerText = activeStatusFilters.has("AT_RISK") 
+              ? "At-Risk Attendance Breakdown" 
+              : `${showcasedCategories.map(c => c.label).join(" & ")} Breakdown`;
+            subheadEl.innerText = `Showcasing ${filteredTotal} records matching ${showcasedCategories.map(c => c.label).join(", ")}`;
+          } else {
+            headingEl.innerText = "Attendance Distribution";
+            subheadEl.innerText = "Multi-select filters above to showcase dynamic breakdown";
+          }
+        }
+
+        // Update Legend items: active ones highlighted with % of selection; excluded ones dimmed
+        [categoryMap.PRESENT, categoryMap.LATE, categoryMap.ABSENT, categoryMap.EXCUSED].forEach(c => {
+          const legEl = document.getElementById(c.legId);
+          const valEl = document.getElementById(c.valId);
+          const isSelected = !isMultiFiltered || activeStatusFilters.has(c.statusKey) || (activeStatusFilters.has("AT_RISK") && c.count > 0);
+          
+          if (valEl) {
+            if (isMultiFiltered) {
+              if (isSelected) {
+                const pctOfSelected = showcaseSum ? ((c.count / showcaseSum) * 100).toFixed(1) : 0;
+                valEl.innerHTML = `<span class="text-xs font-black text-slate-800 dark:text-white">${c.count}</span> <span class="text-[10px] text-slate-500 font-bold">(${pctOfSelected}%)</span>`;
+              } else {
+                valEl.innerHTML = `<span class="text-xs text-slate-400 font-medium">${c.baseCount}</span> <span class="text-[9px] text-slate-400 font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">Excluded</span>`;
+              }
+            } else {
+              const pctOfAll = baseTotal ? ((c.count / baseTotal) * 100).toFixed(1) : 0;
+              valEl.innerHTML = `<span class="text-xs font-black text-slate-800 dark:text-white">${c.count}</span> <span class="text-[10px] text-slate-500 font-bold">(${pctOfAll}%)</span>`;
+            }
+          }
+
+          if (legEl) {
+            if (isSelected) {
+              legEl.classList.remove("opacity-40", "grayscale");
+              legEl.classList.add("ring-1", "ring-slate-300/40", "dark:ring-slate-700/40");
+            } else {
+              legEl.classList.add("opacity-40", "grayscale");
+              legEl.classList.remove("ring-1", "ring-slate-300/40", "dark:ring-slate-700/40");
+            }
+          }
+        });
+      }
+
+      async function filterReports() {
+        const term = document.getElementById("termFilter") ? document.getElementById("termFilter").value : "";
+        const section = document.getElementById("sectionFilter").value;
+        const code = document.getElementById("courseFilter").value;
+        const start = document.getElementById("startDate").value;
+        const end = document.getElementById("endDate").value;
+        const cont = document.getElementById("continuityFilter").value;
+
+        let baseLogs = allLogs;
+        
+        if (window._forceSessionIdFilter) {
+           baseLogs = baseLogs.filter(l => String(l.session_id) === String(window._forceSessionIdFilter));
+        }
+        
+        if (section) baseLogs = baseLogs.filter((l) => l.student_section === section);
+        if (code) baseLogs = baseLogs.filter((l) => l.course_code === code);
+        if (start) baseLogs = baseLogs.filter((l) => l.timestamp.split("T")[0] >= start);
+        if (end) baseLogs = baseLogs.filter((l) => l.timestamp.split("T")[0] <= end);
+
+        // Precompute quick filter count badges
+        const cntAll = baseLogs.length;
+        const cntAbsent = baseLogs.filter(l => l.status === "ABSENT").length;
+        const cntLate = baseLogs.filter(l => l.status === "LATE").length;
+        const cntPresent = baseLogs.filter(l => l.status === "PRESENT").length;
+        const cntExcused = baseLogs.filter(l => l.status === "EXCUSED").length;
+
+        const cntAtRisk = baseLogs.filter(l => {
+          const key = (l.student_name || l.student_username || "unknown") + "_" + (l.course_code || "course");
+          return cachedAtRiskKeys.has(key);
+        }).length;
+
+        // Update badge counts in UI
+        if (document.getElementById("qf-cnt-all")) document.getElementById("qf-cnt-all").innerText = cntAll;
+        if (document.getElementById("qf-cnt-absent")) document.getElementById("qf-cnt-absent").innerText = cntAbsent;
+        if (document.getElementById("qf-cnt-late")) document.getElementById("qf-cnt-late").innerText = cntLate;
+        if (document.getElementById("qf-cnt-present")) document.getElementById("qf-cnt-present").innerText = cntPresent;
+        if (document.getElementById("qf-cnt-excused")) document.getElementById("qf-cnt-excused").innerText = cntExcused;
+        if (document.getElementById("qf-cnt-atrisk")) document.getElementById("qf-cnt-atrisk").innerText = cntAtRisk;
+
+        let f = baseLogs;
+
+        // Multi-select status filter handling
+        if (activeStatusFilters.size > 0) {
+          f = f.filter(l => {
+            const key = (l.student_name || l.student_username || "unknown") + "_" + (l.course_code || "course");
+            const isAtRisk = cachedAtRiskKeys.has(key);
+            if (activeStatusFilters.has("AT_RISK") && isAtRisk) return true;
+            if (activeStatusFilters.has(l.status)) return true;
+            return false;
+          });
+        }
+
+        if (cont) {
+          f = f.filter((l) => {
+            const s = l.continuity_status;
+            if (!s) return false;
+            if (cont === "Stable") return s === "Stable";
+            if (cont === "Reconnected")
+              return s === "Reconnected" || s === "Temporarily Interrupted";
+            if (cont === "Interrupted") return s === "Interrupted";
+            return true;
+          });
+        }
+        
+        // Sort by surname alphabetically
+        f.sort((a, b) => {
+          const nameA = a.student_name || a.student_username || "";
+          const nameB = b.student_name || b.student_username || "";
+          return getSurname(nameA).localeCompare(getSurname(nameB));
+        });
+
+        currentFilteredLogs = f;
+
+        // Update Graphical Pie Chart & Distribution KPI with filtered logs showcase
+        updatePieChart(f, baseLogs);
+
+        // Update Standardized Institutional Header Banner
+        updateStandardizedHeader(term, code, section, start, end, activeStatusFilters, f.length);
+
+        // Course Specific Analytics
+        const aiWidget = document.getElementById("aiSummary");
+        if (code && courses.find((c) => c.code === code)) {
+          aiWidget.classList.remove("hidden");
+          const cID = courses.find((c) => c.code === code).id;
+          try {
+            const pred = await getPrediction(cID);
+            document.getElementById("aiText").innerText = pred.prediction;
+            document.getElementById("aiProj").innerText =
+              pred.projected_rate || "--%";
+          } catch (e) {}
+        } else {
+          aiWidget.classList.add("hidden");
+        }
+
+        currentView === "log" ? renderLogTable(f, studentLogMap) : renderSummaryTable(f);
+      }
+
+      function updateStandardizedHeader(term, code, section, start, end, statusFilterSet, totalCount) {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const profName = user.full_name || "Prof. Jefferson Costales";
+        
+        document.getElementById("hdrTerm").innerText = term || window.getCurrentSemesterString();
+        document.getElementById("hdrCourse").innerText = code ? `${code} - ${courses.find(c => c.code === code)?.name || "Course"}` : "All Assigned Courses";
+        document.getElementById("hdrSection").innerText = section || "All Enrolled Sections";
+        document.getElementById("hdrFaculty").innerText = profName;
+        
+        let periodStr = "All Logged Sessions";
+        if (start && end) periodStr = `${start} to ${end}`;
+        else if (start) periodStr = `From ${start}`;
+        else if (end) periodStr = `Until ${end}`;
+        document.getElementById("hdrPeriod").innerText = periodStr;
+
+        document.getElementById("hdrGenerated").innerText = new Date().toLocaleString();
+        
+        let statusLabel = "All Attendance Statuses";
+        if (statusFilterSet instanceof Set && statusFilterSet.size > 0) {
+          const names = [];
+          if (statusFilterSet.has("ABSENT")) names.push("🚨 Absences");
+          if (statusFilterSet.has("LATE")) names.push("⏰ Latenesses");
+          if (statusFilterSet.has("PRESENT")) names.push("✅ Present");
+          if (statusFilterSet.has("EXCUSED")) names.push("📄 Excused");
+          if (statusFilterSet.has("AT_RISK")) names.push("⚠️ At-Risk");
+          statusLabel = "Filtered: " + names.join(" + ");
+        } else if (typeof statusFilterSet === "string" && statusFilterSet) {
+          if (statusFilterSet === "ABSENT") statusLabel = "🚨 Absences (Missing Sessions)";
+          else if (statusFilterSet === "LATE") statusLabel = "⏰ Latenesses (Past Threshold)";
+          else if (statusFilterSet === "PRESENT") statusLabel = "✅ Present Only";
+          else if (statusFilterSet === "EXCUSED") statusLabel = "📄 Excused Absences";
+          else if (statusFilterSet === "AT_RISK") statusLabel = "⚠️ At-Risk Patterns (2+ Absences / 3+ Lates)";
+        }
+        document.getElementById("hdrFilterStatus").innerText = statusLabel;
+
+        document.getElementById("hdrRecordCount").innerText = `${totalCount} Records`;
+        document.getElementById("sigInstructor").innerText = profName;
+        document.getElementById("sigFooterTimestamp").innerText = `Printed / Generated on ${new Date().toLocaleString()}`;
+      }
+
+      function renderLogTable(d, studentLogMap = {}) {
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const deleteBtnHead =
+          currentUser.role === "admin"
+            ? '<th class="px-6 py-5 text-right w-24 no-print">Actions</th>'
+            : '<th class="px-6 py-5 text-right w-24 no-print">Edit</th>';
+        document.getElementById("tableHead").innerHTML =
+          `<th class="px-6 py-5">Student Name</th><th class="px-6 py-5">Course</th><th class="px-6 py-5">Date & Time</th><th class="px-6 py-5 text-center">Status</th><th class="px-6 py-5 text-center">Pattern & Monitoring</th><th class="px-6 py-5 text-center">Continuity</th><th class="px-6 py-5">Remarks</th>${deleteBtnHead}`;
+        const t = document.getElementById("reportTable");
+        if (!d.length)
+          return (t.innerHTML =
+            "<tr><td colspan='8' class='p-24 text-center text-slate-400 font-black tracking-widest text-xs uppercase'><div class='flex flex-col items-center gap-4 justify-center'><span class='material-symbols-rounded text-6xl opacity-30'>history</span>No Records Match the Specified Filters</div></td></tr>");
+
+        t.innerHTML = d
+          .map((r) => {
+            const editBtn = `<button onclick="openEdit(${r.id}, '${r.status}', '${r.remarks || ""}')" class="text-indigo-500 hover:text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 p-2 rounded-xl transition-all mr-2 no-print" title="Edit Log"><span class="material-symbols-rounded text-[18px]">edit</span></button>`;
+            const deleteBtn =
+              currentUser.role === "admin"
+                ? `<button onclick="removeLog(${r.id})" class="text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 p-2 rounded-xl transition-all no-print" title="Delete Record"><span class="material-symbols-rounded text-[18px]">delete</span></button>`
+                : "";
+            const continuityMarkup = getContinuityBadge(
+              r.session_mode,
+              r.continuity_status,
+              r.interruption_reason,
+            );
+
+            // Row highlighting for monitoring fast-tracking
+            let rowHighlightClass = "";
+            if (r.status === "ABSENT") {
+              rowHighlightClass = "bg-rose-50/40 dark:bg-rose-950/20 border-l-4 border-l-rose-500";
+            } else if (r.status === "LATE") {
+              rowHighlightClass = "bg-amber-50/40 dark:bg-amber-950/20 border-l-4 border-l-amber-500";
+            } else if (r.status === "EXCUSED") {
+              rowHighlightClass = "bg-blue-50/30 dark:bg-blue-950/10 border-l-4 border-l-blue-400";
+            }
+
+            // Pattern tracking evaluation (instant O(1) lookup)
+            const sKey = (r.student_name || r.student_username || "unknown") + "_" + (r.course_code || "course");
+            const pat = cachedStudentPatternMap[sKey] || { absCount: 0, lateCount: 0 };
+            const absCount = pat.absCount;
+            const lateCount = pat.lateCount;
+            
+            let patternBadges = [];
+            if (r.status === "ABSENT" && absCount >= 2) {
+              patternBadges.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-300/60 dark:border-rose-800" title="Student has ${absCount} total absences in this course"><span class="material-symbols-rounded text-[12px]">warning</span> ${absCount}x Absent</span>`);
+            } else if (r.status === "ABSENT") {
+              patternBadges.push(`<span class="text-[9px] font-bold text-rose-600 dark:text-rose-400">Missing Session</span>`);
+            }
+
+            if (r.status === "LATE" && lateCount >= 3) {
+              patternBadges.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800" title="3+ Lates = 1 Absence equivalent under CHED rule"><span class="material-symbols-rounded text-[12px]">schedule</span> 3+ Lates (CHED)</span>`);
+            } else if (r.status === "LATE") {
+              patternBadges.push(`<span class="text-[9px] font-bold text-amber-600 dark:text-amber-400">Past Threshold</span>`);
+            }
+
+            if (r.status === "PRESENT") {
+              patternBadges.push(`<span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">On Time</span>`);
+            }
+            if (r.status === "EXCUSED") {
+              patternBadges.push(`<span class="text-[9px] font-bold text-blue-600 dark:text-blue-400">Medical / Valid</span>`);
+            }
+
+            const patternMarkup = patternBadges.join(" ");
+
+            return `<tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/60 ${rowHighlightClass}">
+              <td class="px-6 py-4 font-black text-slate-800 dark:text-slate-200">
+                <div>${r.student_name || r.student_username || "Unknown"}</div>
+                <div class="text-[10px] text-slate-400 font-mono font-normal">${r.student_username || ""}</div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="whitespace-nowrap inline-block bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-200/50 dark:border-indigo-800/50">${r.course_code || "-"}</span>
+              </td>
+              <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-xs font-bold leading-tight font-mono">
+                <div class="flex flex-col">
+                  <span>${formatDate(r.timestamp)}</span>
+                  <span class="text-[10px] opacity-75">${formatTime(r.timestamp)}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                ${window.getStatusBadge(r.status, JSON.stringify(r))}
+              </td>
+              <td class="px-6 py-4 text-center">
+                ${patternMarkup}
+              </td>
+              <td class="px-6 py-4 text-center font-bold">
+                ${continuityMarkup}
+              </td>
+              <td class="px-6 py-4 text-xs font-medium text-slate-500 italic max-w-xs truncate">
+                ${r.remarks || "-"}
+              </td>
+              <td class="px-6 py-4 text-right whitespace-nowrap no-print">
+                ${editBtn}${deleteBtn}
+              </td>
+            </tr>`;
+          })
+          .join("");
+      }
+
+      function renderSummaryTable(d) {
+        document.getElementById("tableHead").innerHTML =
+          `<th class="px-6 py-5">Student Name</th><th class="px-6 py-5 text-center">Present</th><th class="px-6 py-5 text-center">Late</th><th class="px-6 py-5 text-center">Absent</th><th class="px-6 py-5 text-center">Excused</th><th class="px-6 py-5 text-center">Total Sessions</th><th class="px-6 py-5 text-right w-48">Academic Standing</th><th class="px-6 py-5 text-right w-16 no-print">Notes</th>`;
+        const t = document.getElementById("reportTable");
+        if (!d.length)
+          return (t.innerHTML =
+            "<tr><td colspan='8' class='p-24 text-center text-slate-400 font-black tracking-widest text-xs uppercase'><div class='flex flex-col items-center gap-4 justify-center'><span class='material-symbols-rounded text-6xl opacity-30'>bar_chart</span>No Summary Data Available</div></td></tr>");
+        const s = {};
+        d.forEach((l) => {
+          const n = l.student_name || l.student_username || "Unknown";
+          if (!s[n]) s[n] = { student_id: l.student_id, username: l.student_username, logs: [], present: 0, late: 0, absent: 0, excused: 0, total: 0 };
+          s[n].logs.push(l);
+          if (l.status === "PRESENT") s[n].present++;
+          else if (l.status === "LATE") s[n].late++;
+          else if (l.status === "ABSENT") s[n].absent++;
+          else if (l.status === "EXCUSED") s[n].excused++;
+          s[n].total++;
+        });
+        const sortedNames = Object.keys(s).sort((n1, n2) => getSurname(n1).localeCompare(getSurname(n2)));
+        t.innerHTML = sortedNames
+          .map(
+            (n) => {
+              const standing = calculateAttendanceStanding(s[n].logs);
+              const badge = renderStandingBadge(standing);
+              const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+              const noteBtn = currentUser.role !== "student" ? `<button onclick="openNoteModal(${s[n].student_id}, '${n}')" class="text-slate-400 hover:text-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all p-2 rounded-xl flex items-center justify-center border border-transparent hover:border-slate-200 dark:hover:border-slate-700 bg-white shadow-sm hover:shadow dark:bg-slate-900 ml-auto no-print" title="Private Note"><span class="material-symbols-rounded text-[18px]">edit_note</span></button>` : '';
+
+              // Highlight rows with attendance concerns
+              let standingRowClass = "";
+              if (standing.level === 3) {
+                standingRowClass = "bg-rose-50/40 dark:bg-rose-950/20 border-l-4 border-l-rose-500";
+              } else if (standing.level === 2) {
+                standingRowClass = "bg-orange-50/40 dark:bg-orange-950/20 border-l-4 border-l-orange-500";
+              } else if (standing.level === 1) {
+                standingRowClass = "bg-amber-50/40 dark:bg-amber-950/20 border-l-4 border-l-amber-500";
+              }
+
+              return `<tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/60 ${standingRowClass}">
+                <td class="px-6 py-4 font-black text-slate-800 dark:text-slate-200">
+                  <div>${n}</div>
+                  <div class="text-[10px] text-slate-400 font-mono font-normal">${s[n].username || ""}</div>
+                </td>
+                <td class="px-6 py-4 text-center text-emerald-600 dark:text-emerald-400 font-black font-mono tabular-nums">${s[n].present}</td>
+                <td class="px-6 py-4 text-center text-amber-600 dark:text-amber-400 font-black font-mono tabular-nums">${s[n].late}</td>
+                <td class="px-6 py-4 text-center text-rose-600 dark:text-rose-400 font-black font-mono tabular-nums">${s[n].absent}</td>
+                <td class="px-6 py-4 text-center text-blue-600 dark:text-blue-400 font-black font-mono tabular-nums">${s[n].excused}</td>
+                <td class="px-6 py-4 text-center text-base font-black font-mono tabular-nums">${s[n].total}</td>
+                <td class="px-6 py-4 text-right">${badge}</td>
+                <td class="px-6 py-4 text-right no-print">${noteBtn}</td>
+              </tr>`;
+            }
+          )
+          .join("");
+      }
+      function openEdit(id, s, r) {
+        document.getElementById("edit_id").value = id;
+        document.getElementById("edit_status").value = s;
+        document.getElementById("edit_remarks").value = r;
+        document.getElementById("editModal").classList.remove("hidden");
+      }
+      async function saveEdit() {
+        const btn = document.querySelector("#editModal .btn-primary");
+        const oldText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin">progress_activity</span> Updating...';
+
+        try {
+          const res = await updateAttendanceLog(
+            document.getElementById("edit_id").value,
+            document.getElementById("edit_status").value,
+            document.getElementById("edit_remarks").value,
+          );
+          if (res.success) {
+            document.getElementById("editModal").classList.add("hidden");
+            init();
+            showToast("Updated");
+          } else {
+            showToast(res.error || "Update failed", "error");
+          }
+        } catch (e) {
+          showToast("Error updating record", "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerText = oldText;
+        }
+      }
+      function openConfirm(title, msg, onConfirm) {
+        document.getElementById("confirmTitle").innerText = title;
+        document.getElementById("confirmMessage").innerText = msg;
+        const btn = document.getElementById("confirmBtn");
+        btn.onclick = () => {
+          onConfirm();
+          document.getElementById("confirmModal").classList.add("hidden");
+        };
+        document.getElementById("confirmModal").classList.remove("hidden");
+      }
+      async function removeLog(id) {
+        openConfirm(
+          "Delete Record",
+          "Are you sure you want to delete this attendance record? This action cannot be undone.",
+          async () => {
+            await deleteAttendanceLog(id);
+            init();
+            showToast("Deleted");
+          },
+        );
+      }
+      function formatExportStatus(status) {
+        if (!status) return "";
+        switch (status) {
+          case "PRESENT":
+            return "Present";
+          case "LATE":
+            return "Late";
+          case "ABSENT":
+            return "Absent";
+          case "REVIEW_REQUIRED":
+            return "Review Required";
+          case "EXCUSED":
+            return "Excused";
+          default:
+            return (
+              status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+            );
+        }
+      }
+
+      function getFilterContextText() {
+        const section = document.getElementById("sectionFilter") ? document.getElementById("sectionFilter").value : "";
+        const code = document.getElementById("courseFilter").value;
+        const start = document.getElementById("startDate").value;
+        const end = document.getElementById("endDate").value;
+        const status = document.getElementById("statusFilter").value;
+
+        let hasFilters = section || code || start || end || status;
+        let filters = [];
+        if (section) filters.push(`Section: ${section}`);
+        if (code) filters.push(`Course: ${code}`);
+
+        if (start && end) filters.push(`Date Range: ${start} to ${end}`);
+        else if (start) filters.push(`Date: From ${start}`);
+        else if (end) filters.push(`Date: Until ${end}`);
+
+        if (status) filters.push(`Status: ${formatExportStatus(status)}`);
+
+        if (!hasFilters) filters.push("All Records");
+        return { hasFilters, filterLines: filters };
+      }
+
+      function drawPDFHeader(doc, title, profName, filterLines, totalRecords) {
+        const pageSize = doc.internal.pageSize;
+        const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+
+        // Institutional Top Letterhead
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text("REPUBLIC OF THE PHILIPPINES", 14, 12);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(128, 0, 0); // PUP Maroon
+        doc.text("POLYTECHNIC UNIVERSITY OF THE PHILIPPINES", 14, 18);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text("Parañaque Campus · Office of the University Registrar & Academic Affairs", 14, 23);
+        doc.text("PUP-SAS Smart Attendance & Academic Compliance Roster", 14, 27.5);
+
+        // Document Badge & Hash on right side
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.setTextColor(128, 0, 0);
+        doc.text("OFFICIAL ATTENDANCE RECORD", pageWidth - 14, 14, { align: "right" });
+        doc.setFont("courier", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(148, 163, 184);
+        doc.text("CHED CMO No. 40 Standard", pageWidth - 14, 19, { align: "right" });
+        doc.text("SHA-256 Verified Compliance", pageWidth - 14, 23.5, { align: "right" });
+
+        // Divider rule
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.5);
+        doc.line(14, 30.5, pageWidth - 14, 30.5);
+
+        // Document Sub-title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10.5);
+        doc.setTextColor(15, 23, 42);
+        doc.text(title, 14, 36.5);
+
+        // Metadata grid box
+        const termVal = document.getElementById("termFilter") ? document.getElementById("termFilter").value || window.getCurrentSemesterString() : window.getCurrentSemesterString();
+        const courseVal = document.getElementById("courseFilter").value || "All Assigned Courses";
+        const sectionVal = document.getElementById("sectionFilter") ? document.getElementById("sectionFilter").value || "All Enrolled Sections" : "All Enrolled Sections";
+        const startD = document.getElementById("startDate").value;
+        const endD = document.getElementById("endDate").value;
+        let periodVal = "All Logged Sessions";
+        if (startD && endD) periodVal = `${startD} to ${endD}`;
+        else if (startD) periodVal = `From ${startD}`;
+        else if (endD) periodVal = `Until ${endD}`;
+
+        const statusFilterEl = document.getElementById("statusFilter");
+        const statusText = statusFilterEl && statusFilterEl.value ? formatExportStatus(statusFilterEl.value) : "All Statuses";
+
+        // Draw metadata container
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(14, 40, pageWidth - 28, 24, 2, 2, "F");
+        doc.setDrawColor(226, 232, 240);
+        doc.roundedRect(14, 40, pageWidth - 28, 24, 2, 2, "S");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text("ACADEMIC TERM:", 18, 46);
+        doc.text("COURSE / SUBJECT:", 18, 52);
+        doc.text("PROGRAM & SECTION:", 18, 58);
+
+        doc.text("INSTRUCTOR / FACULTY:", (pageWidth / 2), 46);
+        doc.text("REPORTING PERIOD:", (pageWidth / 2), 52);
+        doc.text("STATUS & LOG COUNT:", (pageWidth / 2), 58);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(15, 23, 42);
+        doc.text(termVal, 52, 46);
+        doc.text(courseVal, 52, 52);
+        doc.text(sectionVal, 52, 58);
+
+        doc.text(profName, (pageWidth / 2) + 38, 46);
+        doc.text(periodVal, (pageWidth / 2) + 38, 52);
+        doc.text(`${statusText} (${totalRecords} logs)`, (pageWidth / 2) + 38, 58);
+
+        return 68;
+      }
+
+      function drawPDFSignatures(doc, profName) {
+        const pageSize = doc.internal.pageSize;
+        const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+
+        let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : 200;
+        if (finalY + 45 > pageHeight - 15) {
+          doc.addPage();
+          finalY = 25;
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.setTextColor(128, 0, 0);
+        doc.text("OFFICIAL INSTITUTIONAL CERTIFICATION & SIGNATURES", 14, finalY);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text("CHED Memorandum Order No. 40 Standard · Academic Attendance Compliance", 14, finalY + 4);
+
+        const sigY = finalY + 20;
+        const colWidth = (pageWidth - 28) / 3;
+
+        // Signature 1: Course Instructor
+        const x1 = 14;
+        doc.setDrawColor(30, 41, 59);
+        doc.setLineWidth(0.5);
+        doc.line(x1, sigY, x1 + colWidth - 8, sigY);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(15, 23, 42);
+        doc.text(profName, x1 + (colWidth - 8) / 2, sigY + 4, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(71, 85, 105);
+        doc.text("Course Instructor / Faculty", x1 + (colWidth - 8) / 2, sigY + 8, { align: "center" });
+        doc.text("Date: ____________________", x1 + (colWidth - 8) / 2, sigY + 12, { align: "center" });
+
+        // Signature 2: Department Chair
+        const x2 = 14 + colWidth;
+        doc.line(x2, sigY, x2 + colWidth - 8, sigY);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Dr. Enrico R. Reyes", x2 + (colWidth - 8) / 2, sigY + 4, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(71, 85, 105);
+        doc.text("Department Chairperson / Head", x2 + (colWidth - 8) / 2, sigY + 8, { align: "center" });
+        doc.text("Date: ____________________", x2 + (colWidth - 8) / 2, sigY + 12, { align: "center" });
+
+        // Signature 3: Campus Director
+        const x3 = 14 + (colWidth * 2);
+        doc.line(x3, sigY, x3 + colWidth - 8, sigY);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Dr. Manuel M. Aguinaldo", x3 + (colWidth - 8) / 2, sigY + 4, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(71, 85, 105);
+        doc.text("Campus Director / Academic Affairs", x3 + (colWidth - 8) / 2, sigY + 8, { align: "center" });
+        doc.text("Date: ____________________", x3 + (colWidth - 8) / 2, sigY + 12, { align: "center" });
+      }
+
+      const totalPagesExp = "{total_pages_count_string}";
+      function getPdfDrawPageHook() {
+        return {
+          didDrawPage: function (data) {
+            let str = "Page " + data.doc.internal.getNumberOfPages();
+            if (typeof data.doc.putTotalPages === "function")
+              str += " of " + totalPagesExp;
+            data.doc.setFontSize(8);
+            data.doc.setTextColor(148, 163, 184);
+            const pageSize = data.doc.internal.pageSize;
+            const pageHeight = pageSize.height
+              ? pageSize.height
+              : pageSize.getHeight();
+            data.doc.text(str, data.settings.margin.left, pageHeight - 8);
+            data.doc.text(
+              "PUP-SAS Smart Attendance Portal · Official University Attendance Document",
+              pageSize.width - data.settings.margin.right - 88,
+              pageHeight - 8,
+            );
+          },
+        };
+      }
+
+      function getPdfParseCellHook() {
+        return {
+          didParseCell: function (data) {
+            if (data.section === "body") {
+              const val = data.cell.raw;
+              if (val === "Present") {
+                data.cell.styles.textColor = [16, 185, 129];
+                data.cell.styles.fontStyle = "bold";
+              } else if (val === "Late") {
+                data.cell.styles.textColor = [245, 158, 11];
+                data.cell.styles.fontStyle = "bold";
+              } else if (val === "Absent") {
+                data.cell.styles.textColor = [225, 29, 72];
+                data.cell.styles.fontStyle = "bold";
+              } else if (val === "Review Required") {
+                data.cell.styles.textColor = [249, 115, 22];
+                data.cell.styles.fontStyle = "bold";
+              } else if (val === "Excused") {
+                data.cell.styles.textColor = [59, 130, 246];
+                data.cell.styles.fontStyle = "bold";
+              }
+            }
+          },
+        };
+      }
+
+      function downloadExcel() {
+        if (!currentFilteredLogs.length)
+          return showToast("No visible records to export.", "error");
+        const btn = document.getElementById("btn-export-xls");
+        const btnHtml = btn.innerHTML;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span> Exporting...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+          try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const profName = user.full_name || "Prof. Unknown";
+            const { filterLines } = getFilterContextText();
+
+            const dates = [
+              ...new Set(
+                currentFilteredLogs.map((l) => l.timestamp.split("T")[0]),
+              ),
+            ].sort();
+            const students = [
+              ...new Set(
+                currentFilteredLogs.map(
+                  (l) => l.student_name || l.student_username,
+                ),
+              ),
+            ].sort((a, b) => getSurname(a).localeCompare(getSurname(b)));
+            // helper to get merge count
+            const mergeCols = Math.max(dates.length + 2, 4);
+
+            const counts = { present: 0, late: 0, absent: 0, excused: 0 };
+            currentFilteredLogs.forEach(l => {
+              if (l.status === 'PRESENT') counts.present++;
+              else if (l.status === 'LATE') counts.late++;
+              else if (l.status === 'ABSENT') counts.absent++;
+              else if (l.status === 'EXCUSED') counts.excused++;
+            });
+            
+            let standingSum = { good: 0, warning: 0, near: 0, limit: 0 };
+            
+            // Note: student standing calculation needs to happen per student. We can just wait to do it or pre-calculate it.
+            // We'll pre-calculate it now so it's ready.
+            const studentStandings = {};
+            students.forEach(student => {
+               const studentLogs = currentFilteredLogs.filter(l => (l.student_name === student || l.student_username === student));
+               const standing = calculateAttendanceStanding(studentLogs);
+               studentStandings[student] = standing;
+               
+               if (standing.status === 'Good Standing') standingSum.good++;
+               else if (standing.status === 'Attendance Warning') standingSum.warning++;
+               else if (standing.status === 'Near Attendance Limit') standingSum.near++;
+               else if (standing.status === 'Recommended for Attendance Review') standingSum.limit++;
+            });
+
+            // Helper to build sheet cells
+            const cell = (v, sObj = {}) => {
+              if (v === undefined || v === null)
+                return { v: "", t: "s", s: sObj };
+              return { v: v, t: typeof v === "number" ? "n" : "s", s: sObj };
+            };
+
+            const EXCEL_STYLES = {
+              title: {
+                font: {
+                  name: "Arial",
+                  sz: 16,
+                  bold: true,
+                  color: { rgb: "FFFFFF" },
+                },
+                fill: { fgColor: { rgb: "800000" } }, // PUP Maroon
+                alignment: { horizontal: "center", vertical: "center" },
+              },
+              subtitle: {
+                font: {
+                  name: "Arial",
+                  sz: 10,
+                  italic: true,
+                  color: { rgb: "595959" },
+                },
+                alignment: { horizontal: "center", vertical: "center" },
+              },
+              docHeader: {
+                font: {
+                  name: "Arial",
+                  sz: 13,
+                  bold: true,
+                  color: { rgb: "800000" },
+                },
+                alignment: { horizontal: "center", vertical: "center" },
+              },
+              metaLabel: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "FFFFFF" },
+                },
+                fill: { fgColor: { rgb: "800000" } },
+                alignment: { horizontal: "left", vertical: "center" },
+                border: { bottom: { style: "thin", color: { rgb: "D9D9D9" } } },
+              },
+              metaValue: {
+                font: { name: "Arial", sz: 9, color: { rgb: "000000" } },
+                fill: { fgColor: { rgb: "F9F9F9" } },
+                alignment: { horizontal: "left", vertical: "center" },
+                border: { bottom: { style: "thin", color: { rgb: "D9D9D9" } } },
+              },
+              summaryLabel: {
+                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "595959" } },
+                alignment: { horizontal: "right", vertical: "center" },
+              },
+              summaryValue: {
+                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "800000" } },
+                alignment: { horizontal: "left", vertical: "center" },
+              },
+              tableHeader: {
+                font: {
+                  name: "Arial",
+                  sz: 10,
+                  bold: true,
+                  color: { rgb: "FFFFFF" },
+                },
+                fill: { fgColor: { rgb: "800000" } }, // PUP Maroon
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  top: { style: "medium", color: { rgb: "000000" } },
+                  bottom: { style: "medium", color: { rgb: "000000" } },
+                  left: { style: "thin", color: { rgb: "FFFFFF" } },
+                  right: { style: "thin", color: { rgb: "FFFFFF" } },
+                },
+              },
+              studentName: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "000000" },
+                },
+                alignment: { horizontal: "left", vertical: "center" },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              statusPresent: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "274E13" },
+                },
+                fill: { fgColor: { rgb: "D9EAD3" } },
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              statusLate: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "7F6000" },
+                },
+                fill: { fgColor: { rgb: "FFF2CC" } },
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              statusAbsent: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "660000" },
+                },
+                fill: { fgColor: { rgb: "F4CCCC" } },
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              statusReview: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "783F04" },
+                },
+                fill: { fgColor: { rgb: "FCE5CD" } },
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              statusExcused: {
+                font: {
+                  name: "Arial",
+                  sz: 9,
+                  bold: true,
+                  color: { rgb: "1155CC" },
+                },
+                fill: { fgColor: { rgb: "C9DAF8" } },
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              statusDefault: {
+                font: { name: "Arial", sz: 9, color: { rgb: "595959" } },
+                alignment: {
+                  horizontal: "center",
+                  vertical: "center",
+                  wrapText: true,
+                },
+                border: {
+                  bottom: { style: "thin", color: { rgb: "D9D9D9" } },
+                  left: { style: "thin", color: { rgb: "D9D9D9" } },
+                  right: { style: "thin", color: { rgb: "D9D9D9" } },
+                },
+              },
+              footer: {
+                font: {
+                  name: "Arial",
+                  sz: 8,
+                  italic: true,
+                  color: { rgb: "595959" },
+                },
+                alignment: { horizontal: "left" },
+              },
+            };
+
+            const matrix = [];
+
+            // rows 0-2: Institutional branding
+            matrix.push([
+              cell(
+                "POLYTECHNIC UNIVERSITY OF THE PHILIPPINES",
+                EXCEL_STYLES.title,
+              ),
+            ]);
+            matrix.push([cell("Parañaque Campus", EXCEL_STYLES.subtitle)]);
+            matrix.push([
+              cell("PUP-SAS Smart Attendance System", EXCEL_STYLES.subtitle),
+            ]);
+            matrix.push([]); // blank spacer 3
+
+            // row 4: Report Name
+            matrix.push([
+              cell(
+                "OFFICIAL ATTENDANCE REPORT WITH SESSION CONTINUITY",
+                EXCEL_STYLES.docHeader,
+              ),
+            ]);
+            matrix.push([]); // blank spacer 5
+
+            // rows 6-12: Parameters and summary block
+            const courseVal = document.getElementById("courseFilter").value || "All Subjects";
+            const sectionVal = document.getElementById("sectionFilter") ? document.getElementById("sectionFilter").value || "All Sections" : "All Sections";
+            const filterJoinedStr = filterLines.join(" | ") || "All Records";
+            
+            const startD = document.getElementById("startDate").value;
+            const endD = document.getElementById("endDate").value;
+            let period = "All Time";
+            if (startD && endD) period = `${startD} to ${endD}`;
+            else if (startD) period = `From ${startD}`;
+            else if (endD) period = `Until ${endD}`;
+
+            matrix.push([
+              cell("Course / Subject:", EXCEL_STYLES.metaLabel),
+              cell(courseVal, EXCEL_STYLES.metaValue),
+              cell("Generated Date:", EXCEL_STYLES.metaLabel),
+              cell(new Date().toLocaleString(), EXCEL_STYLES.metaValue),
+            ]);
+            matrix.push([
+              cell("Section:", EXCEL_STYLES.metaLabel),
+              cell(sectionVal, EXCEL_STYLES.metaValue),
+              cell("Attendance Period:", EXCEL_STYLES.metaLabel),
+              cell(period, EXCEL_STYLES.metaValue),
+            ]);
+            matrix.push([
+              cell("Professor:", EXCEL_STYLES.metaLabel),
+              cell(profName, EXCEL_STYLES.metaValue),
+              cell("Total Students:", EXCEL_STYLES.metaLabel),
+              cell(students.length, EXCEL_STYLES.metaValue),
+            ]);
+            matrix.push([
+               cell("Applied Filters:", EXCEL_STYLES.metaLabel),
+               cell(filterJoinedStr, EXCEL_STYLES.metaValue),
+            ]);
+            
+            matrix.push([]); // blank spacer
+            matrix.push([cell("Attendance Summary", EXCEL_STYLES.docHeader)]);
+            matrix.push([]);
+            
+            matrix.push([
+              cell("Present:", EXCEL_STYLES.summaryLabel),
+              cell(counts.present, EXCEL_STYLES.summaryValue),
+              cell("Good Standing:", EXCEL_STYLES.summaryLabel),
+              cell(standingSum.good, EXCEL_STYLES.summaryValue),
+            ]);
+            matrix.push([
+              cell("Late:", EXCEL_STYLES.summaryLabel),
+              cell(counts.late, EXCEL_STYLES.summaryValue),
+              cell("Attendance Warning:", EXCEL_STYLES.summaryLabel),
+              cell(standingSum.warning, EXCEL_STYLES.summaryValue),
+            ]);
+            matrix.push([
+              cell("Absent:", EXCEL_STYLES.summaryLabel),
+              cell(counts.absent, EXCEL_STYLES.summaryValue),
+              cell("Near Attendance Limit:", EXCEL_STYLES.summaryLabel),
+              cell(standingSum.near, EXCEL_STYLES.summaryValue),
+            ]);
+            matrix.push([
+              cell("Excused:", EXCEL_STYLES.summaryLabel),
+              cell(counts.excused, EXCEL_STYLES.summaryValue),
+              cell("Review Recommended:", EXCEL_STYLES.summaryLabel),
+              cell(standingSum.limit, EXCEL_STYLES.summaryValue),
+            ]);
+
+            matrix.push([]); // blank spacer before table
+
+            // Table headers
+            const tblHeaderRowIdx = matrix.length;
+            const headerRow = [cell("Student Name", EXCEL_STYLES.tableHeader)];
+            dates.forEach((d) => {
+              headerRow.push(cell(formatDate(d), EXCEL_STYLES.tableHeader));
+            });
+            headerRow.push(cell("Absence Equiv", EXCEL_STYLES.tableHeader));
+            headerRow.push(cell("Standing", EXCEL_STYLES.tableHeader));
+            matrix.push(headerRow);
+
+            // Student Roster logs
+            students.forEach((student, sIdx) => {
+              const row = [];
+              const nameStyle =
+                sIdx % 2 === 0
+                  ? EXCEL_STYLES.studentName
+                  : {
+                      ...EXCEL_STYLES.studentName,
+                      fill: { fgColor: { rgb: "F9F9F9" } },
+                    };
+              row.push(cell(student, nameStyle));
+
+              const studentLogs = [];
+              dates.forEach((date) => {
+                const log = currentFilteredLogs.find(
+                  (l) =>
+                    (l.student_name === student ||
+                      l.student_username === student) &&
+                    l.timestamp.startsWith(date),
+                );
+                if (log) studentLogs.push(log);
+                let cellVal = "";
+                let currentStatusStyle =
+                  sIdx % 2 === 0
+                    ? EXCEL_STYLES.statusDefault
+                    : {
+                        ...EXCEL_STYLES.statusDefault,
+                        fill: { fgColor: { rgb: "F9F9F9" } },
+                      };
+
+                if (log) {
+                  cellVal = formatExportStatus(log.status);
+                  if (
+                    log.session_mode === "ONLINE" ||
+                    log.session_mode === "HYBRID"
+                  ) {
+                    const cont = log.continuity_status || "Stable";
+                    cellVal += `\n[${cont}`;
+                    if (log.interruption_reason) {
+                      cellVal += ` (${log.interruption_reason})`;
+                    }
+                    cellVal += `]`;
+                  } else {
+                    cellVal += `\n[N/A]`;
+                  }
+
+                  if (log.status === "PRESENT") {
+                    currentStatusStyle = EXCEL_STYLES.statusPresent;
+                  } else if (log.status === "LATE") {
+                    currentStatusStyle = EXCEL_STYLES.statusLate;
+                  } else if (log.status === "ABSENT") {
+                    currentStatusStyle = EXCEL_STYLES.statusAbsent;
+                  } else if (log.status === "REVIEW_REQUIRED") {
+                    currentStatusStyle = EXCEL_STYLES.statusReview;
+                  } else if (log.status === "EXCUSED") {
+                    currentStatusStyle = EXCEL_STYLES.statusExcused;
+                  }
+                }
+                row.push(cell(cellVal, currentStatusStyle));
+              });
+              
+              const standing = studentStandings[student];
+              row.push(cell(`${standing.equivalentAbsences} / ${standing.limit}`, nameStyle));
+              row.push(cell(standing.status, nameStyle));
+              
+              matrix.push(row);
+            });
+
+            // Post-table footers with 3-column signatures matching PDF and Web
+            matrix.push([]);
+            matrix.push([cell("OFFICIAL INSTITUTIONAL CERTIFICATION & SIGNATURES", EXCEL_STYLES.docHeader)]);
+            matrix.push([]);
+            matrix.push([
+              cell("Prepared By (Course Instructor):", EXCEL_STYLES.summaryLabel),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Verified By (Department Chair):", EXCEL_STYLES.summaryLabel),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Approved By (Campus Director):", EXCEL_STYLES.summaryLabel)
+            ]);
+            matrix.push([]);
+            matrix.push([]);
+            matrix.push([
+              cell("___________________________________", EXCEL_STYLES.metaValue),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("___________________________________", EXCEL_STYLES.metaValue),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("___________________________________", EXCEL_STYLES.metaValue)
+            ]);
+            matrix.push([
+              cell(profName, { ...EXCEL_STYLES.metaValue, font: { ...EXCEL_STYLES.metaValue.font, bold: true }, border: {} }),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Dr. Enrico R. Reyes", { ...EXCEL_STYLES.metaValue, font: { ...EXCEL_STYLES.metaValue.font, bold: true }, border: {} }),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Dr. Manuel M. Aguinaldo", { ...EXCEL_STYLES.metaValue, font: { ...EXCEL_STYLES.metaValue.font, bold: true }, border: {} })
+            ]);
+            matrix.push([
+              cell("Course Instructor / Faculty", { ...EXCEL_STYLES.metaValue, font: { ...EXCEL_STYLES.metaValue.font, color: { rgb: "595959" } }, border: {} }),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Department Chairperson / Head", { ...EXCEL_STYLES.metaValue, font: { ...EXCEL_STYLES.metaValue.font, color: { rgb: "595959" } }, border: {} }),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Campus Director / Academic Affairs", { ...EXCEL_STYLES.metaValue, font: { ...EXCEL_STYLES.metaValue.font, color: { rgb: "595959" } }, border: {} })
+            ]);
+            matrix.push([
+              cell("Date: _________________________", { ...EXCEL_STYLES.metaValue, border: {} }),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Date: _________________________", { ...EXCEL_STYLES.metaValue, border: {} }),
+              cell("", EXCEL_STYLES.metaValue),
+              cell("Date: _________________________", { ...EXCEL_STYLES.metaValue, border: {} })
+            ]);
+            
+            matrix.push([]);
+            matrix.push([]);
+            matrix.push([
+              cell(
+                "Prepared by the PUP-SAS Smart Attendance System Engine. This document is officially verified and print-ready.",
+                EXCEL_STYLES.footer,
+              ),
+            ]);
+            matrix.push([
+              cell(
+                `Document Footprint ID: SHA-256/PUP-SAS-${new Date().getFullYear()}-${Math.floor(Math.random() * 899999 + 100000)} | Printed: ${new Date().toLocaleString()} | Official University Record`,
+                EXCEL_STYLES.footer,
+              ),
+            ]);
+
+            const footerStartIdx = matrix.length - 2;
+
+            const ws = XLSX.utils.aoa_to_sheet(matrix);
+
+            // Auto-fit Column Intel with caps to prevent giant widths
+            const colWidths = [];
+            const colLength = dates.length + 3;
+            for (let c = 0; c < colLength; c++) {
+              let maxLen = c === 0 ? 30 : 20; // Default minimum width
+              for (let r = tblHeaderRowIdx; r < matrix.length; r++) {
+                if (matrix[r] && matrix[r][c]) {
+                  const val = String(matrix[r][c].v || "");
+                  const lines = val.split("\n");
+                  lines.forEach((line) => {
+                    if (line.length > maxLen) {
+                      maxLen = line.length;
+                    }
+                  });
+                }
+              }
+              colWidths.push({
+                wch: Math.min(Math.max(maxLen + 3, c === 0 ? 25 : 15), 45),
+              });
+            }
+            ws["!cols"] = colWidths;
+
+            // Setup print and layout parameters for landscape orientation
+            ws["!margins"] = {
+              left: 0.5,
+              right: 0.5,
+              top: 0.5,
+              bottom: 0.5,
+              header: 0.2,
+              footer: 0.2,
+            };
+            ws["!pageSetup"] = {
+              orientation: "landscape",
+              paperSize: 9,
+              scale: 100,
+              fitToWidth: 1,
+              fitToHeight: 0,
+            };
+            ws["!printHeader"] = [tblHeaderRowIdx + 1, tblHeaderRowIdx + 1]; // repeats table headers row on output pages
+
+            // Merges configuration for official banner headers
+            ws["!merges"] = [
+              { s: { r: 0, c: 0 }, e: { r: 0, c: mergeCols } },
+              { s: { r: 1, c: 0 }, e: { r: 1, c: mergeCols } },
+              { s: { r: 2, c: 0 }, e: { r: 2, c: mergeCols } },
+              { s: { r: 4, c: 0 }, e: { r: 4, c: mergeCols } },
+              { s: { r: tblHeaderRowIdx - 7, c: 0 }, e: { r: tblHeaderRowIdx - 7, c: 3 } }, // Attendance Summary Header
+              { s: { r: footerStartIdx, c: 0 }, e: { r: footerStartIdx, c: mergeCols } },
+              { s: { r: footerStartIdx + 1, c: 0 }, e: { r: footerStartIdx + 1, c: mergeCols } },
+            ];
+
+            // Setup grid freezing for a premium scrolling and tracking experience
+            ws["!views"] = [
+              {
+                state: "frozen",
+                ySplit: tblHeaderRowIdx + 1, // dynamically computed top freeze
+                xSplit: 1, // Student Name column remains locked
+                topLeftCell: "B" + (tblHeaderRowIdx + 2),
+                activePane: "bottomRight",
+                showGridLines: true, // Force enable standard excel lines
+              },
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
+            XLSX.writeFile(
+              wb,
+              `Filtered_Attendance_${new Date().getTime()}.xlsx`,
+            );
+          } catch (e) {
+            showToast("Export failed", "error");
+          } finally {
+            btn.innerHTML = btnHtml;
+            btn.disabled = false;
+          }
+        }, 100);
+      }
+
+      function downloadPDF() {
+        if (!currentFilteredLogs.length)
+          return showToast("No visible records to export.", "error");
+        const btn = document.getElementById("btn-export-pdf");
+        const btnHtml = btn.innerHTML;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span> Exporting...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+          try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const profName = user.full_name || "Prof. Unknown";
+            const { filterLines } = getFilterContextText();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            let y = drawPDFHeader(
+              doc,
+              "ATTENDANCE REPORT",
+              profName,
+              filterLines,
+              currentFilteredLogs.length,
+            );
+
+            const studentLogsMap = {};
+            currentFilteredLogs.forEach(l => {
+              const key = l.student_username + '_' + l.course_code;
+              if (!studentLogsMap[key]) studentLogsMap[key] = [];
+              studentLogsMap[key].push(l);
+            });
+
+            const tableRows = [];
+            currentFilteredLogs.forEach((l) => {
+              let contStr = "N/A";
+              if (l.session_mode === "ONLINE" || l.session_mode === "HYBRID") {
+                contStr = l.continuity_status || "Stable";
+                if (l.interruption_reason) {
+                  contStr += `\n(${l.interruption_reason})`;
+                }
+              }
+              
+              const key = l.student_username + '_' + l.course_code;
+              const standing = calculateAttendanceStanding(studentLogsMap[key]);
+              
+              tableRows.push([
+                l.student_name || l.student_username,
+                l.course_code,
+                formatDate(l.timestamp),
+                formatExportStatus(l.status),
+                contStr,
+                l.remarks || "",
+                `${standing.equivalentAbsences} / ${standing.limit}`,
+                standing.status
+              ]);
+            });
+
+            doc.autoTable({
+              head: [
+                [
+                  "Student",
+                  "Course",
+                  "Date",
+                  "Status",
+                  "Session Continuity",
+                  "Remarks",
+                  "Equiv",
+                  "Standing"
+                ],
+              ],
+              body: tableRows,
+              startY: y + 5,
+              theme: "grid",
+              styles: { fontSize: 8 },
+              headStyles: { fillColor: [128, 0, 0] },
+              didParseCell: getPdfParseCellHook().didParseCell,
+              didDrawPage: getPdfDrawPageHook().didDrawPage,
+            });
+
+            // Draw official 3-column certification signatures block
+            drawPDFSignatures(doc, profName);
+
+            if (typeof doc.putTotalPages === "function")
+              doc.putTotalPages(totalPagesExp);
+
+            doc.save(`Filtered_Attendance_${new Date().getTime()}.pdf`);
+          } catch (e) {
+            showToast("Export failed", "error");
+          } finally {
+            btn.innerHTML = btnHtml;
+            btn.disabled = false;
+          }
+        }, 100);
+      }
+
+      function downloadFullAuditPDF() {
+        if (!allLogs.length) return showToast("No data to export.", "error");
+        const btn = document.getElementById("btn-export-audit");
+        const btnHtml = btn.innerHTML;
+        btn.innerHTML =
+          '<span class="material-symbols-rounded animate-spin text-sm">progress_activity</span> Exporting...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+          try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const profName = user.full_name || "Prof. Unknown";
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            let y = drawPDFHeader(
+              doc,
+              "FULL ATTENDANCE AUDIT REPORT",
+              profName,
+              ["All Records (Full Database Export)"],
+              allLogs.length,
+            );
+
+            const studentLogsMap = {};
+            allLogs.forEach(l => {
+              const key = l.student_username + '_' + l.course_code;
+              if (!studentLogsMap[key]) studentLogsMap[key] = [];
+              studentLogsMap[key].push(l);
+            });
+
+            const tableRows = [];
+            allLogs.forEach((l) => {
+              let contStr = "N/A";
+              if (l.session_mode === "ONLINE" || l.session_mode === "HYBRID") {
+                contStr = l.continuity_status || "Stable";
+                if (l.interruption_reason) {
+                  contStr += `\n(${l.interruption_reason})`;
+                }
+              }
+              
+              const key = l.student_username + '_' + l.course_code;
+              const standing = calculateAttendanceStanding(studentLogsMap[key]);
+              
+              tableRows.push([
+                l.student_name || l.student_username,
+                l.course_code,
+                formatDate(l.timestamp),
+                formatExportStatus(l.status),
+                contStr,
+                l.remarks || "",
+                `${standing.equivalentAbsences} / ${standing.limit}`,
+                standing.status
+              ]);
+            });
+
+            doc.autoTable({
+              head: [
+                [
+                  "Student",
+                  "Course",
+                  "Date",
+                  "Status",
+                  "Session Continuity",
+                  "Remarks",
+                  "Equiv",
+                  "Standing"
+                ],
+              ],
+              body: tableRows,
+              startY: y + 5,
+              theme: "grid",
+              styles: { fontSize: 8 },
+              headStyles: { fillColor: [128, 0, 0] },
+              didParseCell: getPdfParseCellHook().didParseCell,
+              didDrawPage: getPdfDrawPageHook().didDrawPage,
+            });
+
+            // Draw official 3-column certification signatures block
+            drawPDFSignatures(doc, profName);
+
+            if (typeof doc.putTotalPages === "function")
+              doc.putTotalPages(totalPagesExp);
+
+            doc.save(`Full_Audit_Report_${new Date().getTime()}.pdf`);
+          } catch (e) {
+            showToast("Export failed", "error");
+          } finally {
+            btn.innerHTML = btnHtml;
+            btn.disabled = false;
+          }
+        }, 100);
+      }
+      
+      // Private Notes Logic
+      let currentNoteStudentId = null;
+      let currentNoteTag = '';
+      
+      async function openNoteModal(studentId, studentName) {
+         currentNoteStudentId = studentId;
+         currentNoteTag = '';
+         document.getElementById('pn_student_name').innerText = studentName;
+         document.getElementById('privateNoteModal').classList.remove('hidden');
+         document.getElementById('pn_new_text').value = '';
+         document.querySelectorAll('.pn-tag-btn').forEach(b => {
+             b.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+             b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+         });
+         await loadNotes();
+      }
+      
+      function closeNoteModal() {
+         document.getElementById('privateNoteModal').classList.add('hidden');
+         currentNoteStudentId = null;
+      }
+      
+      function selectNoteTag(btn, tag) {
+         currentNoteTag = tag;
+         document.querySelectorAll('.pn-tag-btn').forEach(b => {
+             b.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+             b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+         });
+         btn.classList.add('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+         btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+      }
+      
+      async function loadNotes() {
+         const list = document.getElementById('pn_notes_list');
+         list.innerHTML = `<div class="text-center p-4 text-slate-400 text-xs font-bold">Loading...</div>`;
+         try {
+             // Need to lookup studentId by username/name? 
+             // If we just got the number studentId from the table row, we're good.
+             const notes = await fetchProfessorNotes(currentNoteStudentId);
+             if (notes && notes.length > 0) {
+                 list.innerHTML = notes.map(n => `
+                    <div class="bg-white dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700 relative group">
+                        ${n.tag ? `<span class="px-2 py-0.5 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2 inline-block">${n.tag}</span>` : ''}
+                        <p class="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap">${n.note_text}</p>
+                        <div class="flex items-center justify-between mt-2">
+                           <span class="text-[9px] text-slate-400">${new Date(n.updated_at).toLocaleString()}</span>
+                           <button onclick="deleteNote(${n.id})" class="text-rose-500/50 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-rounded text-sm">delete</span></button>
+                        </div>
+                    </div>
+                 `).join('');
+             } else {
+                 list.innerHTML = `<div class="text-center p-8 text-slate-400 text-xs font-bold flex flex-col items-center gap-2"><span class="material-symbols-rounded opacity-30 text-3xl">speaker_notes_off</span>No private notes yet</div>`;
+             }
+         } catch(e) {
+             list.innerHTML = `<div class="text-rose-500 text-xs text-center p-4">Error loading notes.</div>`;
+         }
+      }
+      
+      async function submitNewNote() {
+         const text = document.getElementById('pn_new_text').value;
+         if (!text.trim()) return showToast('Note text is required.', 'error');
+         
+         const res = await saveProfessorNote(currentNoteStudentId, text, currentNoteTag);
+         if (res && res.success) {
+            document.getElementById('pn_new_text').value = '';
+            document.querySelectorAll('.pn-tag-btn').forEach(b => {
+                b.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/30', 'text-emerald-700', 'dark:text-emerald-400');
+                b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-500');
+            });
+            currentNoteTag = '';
+            await loadNotes();
+            showToast('Private note saved.');
+         } else {
+            showToast('Failed to save note.', 'error');
+         }
+      }
+      
+      async function deleteNote(noteId) {
+         if (!confirm("Delete this private note?")) return;
+         const res = await deleteProfessorNote(noteId);
+         if (res && res.success) {
+             await loadNotes();
+             showToast('Note deleted.');
+         }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
